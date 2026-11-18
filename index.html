@@ -1,0 +1,3605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>小红薯 Agent · 小红书内容管理中枢</title>
+<meta name="theme-color" content="#FF2442" />
+<style>
+/* ============ 基础 ============ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none !important}
+:root{
+  --brand:#FF2442; --brand-d:#e01a35; --brand-l:#fff1f3;
+  --ink:#1c1c1e; --ink-2:#4a4a4f; --sub:#8d8d93; --sub-2:#b0b0b6;
+  --line:#efeff1; --line-2:#e4e4e7;
+  --bg:#f7f7f9; --card:#ffffff;
+  --green:#16a34a; --amber:#f59e0b; --blue:#2563eb;
+  --r:16px; --r-sm:10px; --r-lg:22px;
+  --sh:0 1px 2px rgba(20,20,30,.04), 0 8px 24px -12px rgba(20,20,30,.12);
+  --sh-lg:0 24px 60px -24px rgba(20,20,30,.24);
+}
+html,body{margin:0;padding:0}
+body{
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:var(--bg); color:var(--ink); font-size:14px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,p{margin:0}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:14px;color:var(--ink)}
+svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+::selection{background:#ffd9df}
+
+/* ============ 顶栏 ============ */
+.topbar{
+  position:sticky;top:0;z-index:60;background:rgba(255,255,255,.86);
+  backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:1440px;margin:0 auto;padding:0 24px;height:64px;
+  display:flex;align-items:center;gap:28px;
+}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.brand-mark{
+  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#FF2442,#FF6B81);color:#fff;font-weight:700;font-size:17px;
+  box-shadow:0 6px 14px -6px rgba(255,36,66,.7);
+}
+.brand-text h1{font-size:15px;font-weight:700;letter-spacing:-.2px}
+.brand-text p{font-size:11px;color:var(--sub);line-height:1.3}
+
+.tabs{display:flex;gap:4px;flex:1}
+.tab{
+  position:relative;display:flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--sub);
+  transition:.18s;
+}
+.tab svg{width:16px;height:16px}
+.tab:hover{background:#f5f5f7;color:var(--ink-2)}
+.tab.active{background:var(--brand-l);color:var(--brand);font-weight:600}
+.tab-badge{
+  min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:var(--brand);color:#fff;
+  font-size:11px;font-weight:600;display:grid;place-items:center;
+}
+.dot-new{width:6px;height:6px;border-radius:50%;background:var(--brand);position:absolute;top:7px;right:7px}
+
+.top-actions{display:flex;align-items:center;gap:10px;flex:none}
+.sync-pill{
+  display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);
+  padding:5px 10px;border-radius:20px;background:#f5f5f7;
+}
+.sync-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--sub-2);transition:.2s}
+.sync-pill.online{background:#eefaf1;color:var(--green)}
+.sync-pill.online .dot{background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.14)}
+.sync-pill.busy .dot{background:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+
+/* ============ 通用元件 ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 18px;border-radius:11px;font-size:13.5px;font-weight:600;
+  transition:.16s;white-space:nowrap;
+}
+.btn:active{transform:scale(.975)}
+.btn svg{width:16px;height:16px}
+.btn-primary{background:linear-gradient(135deg,#FF2442,#FF4D63);color:#fff;box-shadow:0 8px 20px -10px rgba(255,36,66,.85)}
+.btn-primary:hover{filter:brightness(1.05);box-shadow:0 10px 24px -10px rgba(255,36,66,.95)}
+.btn-ghost{background:#fff;color:var(--ink-2);border:1px solid var(--line-2)}
+.btn-ghost:hover{background:#fafafa;border-color:#d5d5da}
+.btn-soft{background:var(--brand-l);color:var(--brand);font-weight:600}
+.btn-soft:hover{background:#ffe4e9}
+.btn-sm{padding:7px 13px;font-size:12.5px;border-radius:9px}
+.btn-lg{padding:13px 20px;font-size:14.5px;border-radius:13px}
+.btn-block{width:100%}
+.btn.danger{color:#dc2626}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.txt-btn{font-size:12.5px;color:var(--brand);font-weight:500}
+.txt-btn:hover{text-decoration:underline}
+.icon-btn{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--sub);transition:.15s}
+.icon-btn:hover{background:#f2f2f4;color:var(--ink)}
+.icon-btn svg{width:17px;height:17px}
+
+.chip-btn{
+  padding:5px 11px;border-radius:8px;font-size:12px;color:var(--sub);
+  border:1px solid var(--line-2);background:#fff;transition:.15s;
+}
+.chip-btn:hover{color:var(--ink);border-color:#cfcfd6}
+.chip-btn.danger:hover{color:#dc2626;border-color:#fbc9cb;background:#fff5f5}
+
+.panel{background:var(--card);border-radius:var(--r);border:1px solid var(--line);padding:16px}
+.panel-grow{display:flex;flex-direction:column;min-height:0}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.panel-head h4{font-size:13.5px;font-weight:650;display:flex;align-items:center;gap:7px}
+.panel-head .count{color:var(--sub);font-weight:500;font-size:12px}
+.panel-desc{font-size:12.5px;color:var(--sub);line-height:1.65;margin-bottom:14px}
+.panel-tools{display:flex;gap:6px;flex-wrap:wrap}
+
+.tag{font-size:11px;padding:2px 8px;border-radius:6px;background:#f4f4f6;color:var(--sub);font-weight:500}
+.tag.ok{background:#eefaf1;color:var(--green)}
+.tag.warn{background:#fff7e8;color:#b45309}
+
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:56px 20px;text-align:center;color:var(--sub);
+}
+.empty-emoji{font-size:30px;opacity:.85}
+.empty h3{font-size:15px;color:var(--ink-2);font-weight:600}
+.empty p{font-size:12.5px;max-width:340px;line-height:1.7}
+.empty-lg{padding:110px 20px}
+
+/* ============ 视图容器 ============ */
+.app{max-width:1440px;margin:0 auto;padding:26px 24px 40px}
+.view{display:none;animation:fadeUp .3s ease both}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view-head{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+  margin-bottom:20px;flex-wrap:wrap;
+}
+.view-head h2{font-size:22px;font-weight:700;letter-spacing:-.4px}
+.view-head p{font-size:13px;color:var(--sub);margin-top:3px;max-width:600px}
+.head-tools{display:flex;align-items:center;gap:8px}
+.week-label{font-size:13px;font-weight:600;min-width:120px;text-align:center;color:var(--ink-2)}
+.head-stats{display:flex;gap:14px}
+.mini-stat{text-align:right}
+.mini-stat b{display:block;font-size:19px;font-weight:700;letter-spacing:-.5px}
+.mini-stat span{font-size:11.5px;color:var(--sub)}
+
+/* ============ 工作台 ============ */
+.wb-grid{display:grid;grid-template-columns:288px minmax(0,1fr);gap:18px;align-items:start}
+.wb-side{display:flex;flex-direction:column;gap:14px;position:sticky;top:82px}
+
+.dropzone{
+  border:1.5px dashed #dcdce2;border-radius:var(--r);background:#fff;
+  padding:22px 16px;text-align:center;transition:.2s;cursor:pointer;
+}
+.dropzone:hover,.dropzone.drag{border-color:var(--brand);background:var(--brand-l)}
+.dz-icon{
+  width:42px;height:42px;margin:0 auto 10px;border-radius:12px;display:grid;place-items:center;
+  background:var(--brand-l);color:var(--brand);
+}
+.dz-icon svg{width:20px;height:20px}
+.dropzone h3{font-size:13.5px;font-weight:650;margin-bottom:2px}
+.dropzone p{font-size:11.5px;color:var(--sub)}
+.dz-hint{
+  display:inline-block;margin-top:10px;font-size:11px;color:var(--brand);
+  background:var(--brand-l);padding:3px 9px;border-radius:6px;
+}
+
+.group-list{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow:auto}
+.group-item{
+  display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;
+  cursor:pointer;transition:.15s;border:1px solid transparent;
+}
+.group-item:hover{background:#fafafb}
+.group-item.active{background:var(--brand-l);border-color:#ffdde3}
+.g-thumb{
+  width:34px;height:34px;border-radius:8px;background:#f0f0f3 center/cover no-repeat;flex:none;
+  display:grid;place-items:center;font-size:13px;color:var(--sub-2);
+}
+.g-meta{flex:1;min-width:0}
+.g-meta b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-meta span{font-size:11px;color:var(--sub)}
+.g-del{opacity:0;font-size:11px;color:var(--sub-2);padding:2px 5px;border-radius:5px}
+.group-item:hover .g-del{opacity:1}
+.g-del:hover{background:#fff;color:#dc2626}
+
+.wb-main{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px;align-items:start}
+.wb-inspector{display:flex;flex-direction:column;gap:14px;position:sticky;top:82px}
+
+.img-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));
+  gap:10px;align-content:start;max-height:min(58vh,560px);overflow:auto;padding-right:2px;
+}
+.img-cell{
+  position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:#f2f2f5;
+  cursor:pointer;transition:.16s;border:2px solid transparent;
+}
+.img-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s}
+.img-cell:hover img{transform:scale(1.04)}
+.img-cell.sel{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,36,66,.14)}
+.img-cell.sel::after{
+  content:"";position:absolute;inset:0;background:rgba(255,36,66,.1);
+}
+.img-check{
+  position:absolute;top:7px;right:7px;width:20px;height:20px;border-radius:50%;
+  background:rgba(255,255,255,.9);border:1.5px solid #fff;z-index:2;
+  display:grid;place-items:center;font-size:11px;color:#fff;font-weight:700;
+  box-shadow:0 1px 4px rgba(0,0,0,.18);transition:.15s;
+}
+.img-cell.sel .img-check{background:var(--brand);border-color:var(--brand)}
+.img-name{
+  position:absolute;left:0;right:0;bottom:0;padding:14px 7px 5px;
+  font-size:10px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.55));
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;
+}
+
+.selectbar{
+  position:sticky;bottom:16px;margin-top:16px;z-index:40;
+  display:flex;align-items:center;gap:14px;padding:10px 14px;
+  background:rgba(28,28,30,.93);backdrop-filter:blur(14px);
+  border-radius:14px;color:#fff;box-shadow:var(--sh-lg);
+  transform:translateY(0);transition:.25s;
+}
+.selectbar.hide{transform:translateY(140%);opacity:0;pointer-events:none}
+.sel-info{font-size:12.5px;white-space:nowrap;color:#d8d8dc}
+.sel-info b{color:#fff;font-size:15px;margin-right:2px}
+.sel-thumbs{display:flex;gap:5px;flex:1;overflow:hidden}
+.sel-thumbs img{width:30px;height:38px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.2)}
+.selectbar .btn{flex:none}
+
+.agent-card{background:linear-gradient(160deg,#fff5f6,#fff)}
+.agent-head{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.agent-ava{
+  width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:16px;
+  background:#fff;box-shadow:0 2px 8px rgba(255,36,66,.14);
+}
+.agent-head strong{font-size:13px;display:block;line-height:1.2}
+.agent-head p{font-size:11px;color:var(--sub)}
+.agent-tips{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:9px}
+.agent-tips li{
+  font-size:12.5px;line-height:1.6;color:var(--ink-2);padding-left:16px;position:relative;
+}
+.agent-tips li::before{
+  content:"";position:absolute;left:2px;top:7px;width:5px;height:5px;border-radius:50%;
+  background:var(--brand);opacity:.6;
+}
+
+.hot-list{display:flex;flex-direction:column;gap:2px;max-height:298px;overflow:auto}
+.hot-item{
+  display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:8px;cursor:pointer;
+  transition:.14s;font-size:12.5px;
+}
+.hot-item:hover{background:#fafafb}
+.hot-rank{
+  width:17px;flex:none;text-align:center;font-size:11px;font-weight:700;color:var(--sub-2);
+  font-variant-numeric:tabular-nums;
+}
+.hot-item:nth-child(1) .hot-rank,.hot-item:nth-child(2) .hot-rank,.hot-item:nth-child(3) .hot-rank{color:var(--brand)}
+.hot-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hot-heat{font-size:10.5px;color:var(--sub-2);flex:none}
+.hot-tag{font-size:9.5px;padding:1px 5px;border-radius:4px;background:#f4f4f6;color:var(--sub);flex:none}
+.hot-foot{font-size:10.5px;color:var(--sub-2);text-align:center;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+
+/* ============ 文案工坊 ============ */
+.studio-grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:18px;align-items:start}
+.studio-form{position:sticky;top:82px;display:flex;flex-direction:column;gap:15px}
+.form-block label{
+  display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  color:var(--ink-2);margin-bottom:7px;
+}
+.req{font-size:10px;color:var(--brand);background:var(--brand-l);padding:1px 5px;border-radius:4px;font-weight:500}
+.hint{font-size:10.5px;color:var(--sub-2);font-weight:400}
+.form-block textarea,.form-block input,.field input,.field select{
+  width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;
+  outline:none;transition:.15s;background:#fff;resize:vertical;line-height:1.6;
+}
+.form-block textarea:focus,.form-block input:focus,.field input:focus,.field select:focus{
+  border-color:#ffb3be;box-shadow:0 0 0 3px rgba(255,36,66,.09);
+}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  padding:5px 11px;border-radius:20px;font-size:12px;border:1px solid var(--line-2);
+  background:#fff;color:var(--sub);transition:.15s;white-space:nowrap;
+}
+.chip:hover{border-color:#d0d0d6;color:var(--ink-2)}
+.chip.active{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 4px 10px -6px rgba(255,36,66,.9)}
+.chips-hot .chip{font-size:11.5px;padding:4px 10px}
+.chips-hot .chip.active{background:#fff0f2;color:var(--brand);border-color:#ffc9d2;box-shadow:none;font-weight:600}
+
+.studio-thumbs{display:flex;gap:6px;flex-wrap:wrap;min-height:44px}
+.studio-thumbs .st{
+  position:relative;width:44px;height:56px;border-radius:8px;overflow:hidden;background:#f2f2f5;
+}
+.studio-thumbs .st img{width:100%;height:100%;object-fit:cover}
+.studio-thumbs .st button{
+  position:absolute;top:2px;right:2px;width:15px;height:15px;border-radius:50%;
+  background:rgba(0,0,0,.55);color:#fff;font-size:10px;display:grid;place-items:center;line-height:1;
+}
+.studio-thumbs .add-st{
+  width:44px;height:56px;border-radius:8px;border:1.5px dashed var(--line-2);
+  display:grid;place-items:center;color:var(--sub-2);font-size:18px;background:#fff;
+}
+.studio-thumbs .add-st:hover{border-color:var(--brand);color:var(--brand)}
+.form-foot{font-size:11px;color:var(--sub-2);text-align:center;margin-top:-6px}
+
+.ai-mode-pill{
+  display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;border-radius:20px;
+  background:#f4f4f6;color:var(--sub);
+}
+.ai-mode-pill b{color:var(--ink-2);font-weight:600}
+.ai-mode-pill.live{background:#eefaf1;color:#15803d}
+.ai-mode-pill.live b{color:#15803d}
+
+.studio-result{display:flex;flex-direction:column;gap:14px;min-height:400px}
+
+.result-card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;animation:fadeUp .35s both}
+.result-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.result-head h3{font-size:14px;font-weight:650}
+.result-head .rt{font-size:11.5px;color:var(--sub)}
+
+.title-list{display:flex;flex-direction:column;gap:8px}
+.title-opt{
+  display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:11px;
+  border:1px solid var(--line);background:#fff;transition:.15s;cursor:pointer;text-align:left;width:100%;
+}
+.title-opt:hover{border-color:#ffd0d8;background:#fffafb}
+.title-opt.on{border-color:var(--brand);background:var(--brand-l);box-shadow:0 0 0 1px var(--brand) inset}
+.title-opt .num{
+  width:18px;height:18px;border-radius:6px;background:#f4f4f6;color:var(--sub);
+  font-size:11px;font-weight:700;display:grid;place-items:center;flex:none;margin-top:2px;
+}
+.title-opt.on .num{background:var(--brand);color:#fff}
+.title-opt .tt{flex:1;min-width:0}
+.title-opt .tt b{display:block;font-size:14px;font-weight:600;line-height:1.5;letter-spacing:-.1px}
+.title-opt .tt span{font-size:11px;color:var(--sub);display:block;margin-top:3px}
+.title-opt .ctr{font-size:10.5px;color:var(--brand);font-weight:600;flex:none;margin-top:3px}
+
+.body-box{
+  white-space:pre-wrap;font-size:13.5px;line-height:1.85;color:var(--ink-2);
+  padding:14px;border-radius:11px;background:#fafafb;border:1px solid var(--line);
+  max-height:340px;overflow:auto;
+}
+.body-box[contenteditable]:focus{outline:none;border-color:#ffb3be;background:#fff}
+
+.tag-row{display:flex;flex-wrap:wrap;gap:6px}
+.tag-pill{font-size:12px;color:#3b6fb6;background:#f1f6fd;padding:3px 9px;border-radius:7px}
+
+.cover-tips{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cover-cell{background:#fafafb;border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.cover-cell span{font-size:11px;color:var(--sub);display:block;margin-bottom:4px}
+.cover-cell b{font-size:13.5px;font-weight:650;line-height:1.45;display:block}
+.score-bar{display:flex;align-items:center;gap:9px;margin-top:12px}
+.score-track{flex:1;height:6px;border-radius:4px;background:#f0f0f3;overflow:hidden}
+.score-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#FF2442,#FF8A5B);transition:width .6s}
+.score-num{font-size:13px;font-weight:700;color:var(--brand)}
+.score-label{font-size:11.5px;color:var(--sub)}
+
+.why-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:7px}
+.why-list li{font-size:12.5px;color:var(--ink-2);padding-left:17px;position:relative;line-height:1.6}
+.why-list li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:700;font-size:11px}
+
+/* ============ 笔记中心 ============ */
+.seg{display:flex;gap:2px;background:#f2f2f4;padding:3px;border-radius:11px}
+.seg-btn{padding:6px 14px;border-radius:9px;font-size:12.5px;color:var(--sub);font-weight:500;transition:.15s}
+.seg-btn.active{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+.note-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.note-card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  display:flex;flex-direction:column;transition:.18s;
+}
+.note-card:hover{box-shadow:var(--sh);transform:translateY(-2px);border-color:#e6e6ea}
+.note-cover{position:relative;aspect-ratio:4/3;background:#f2f2f5;overflow:hidden}
+.note-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.note-cover .ph{display:grid;place-items:center;height:100%;color:var(--sub-2);font-size:26px}
+.note-status{
+  position:absolute;top:9px;left:9px;font-size:10.5px;font-weight:600;padding:3px 8px;
+  border-radius:7px;backdrop-filter:blur(8px);
+}
+.st-draft{background:rgba(255,255,255,.94);color:var(--sub)}
+.st-ready{background:rgba(255,193,7,.94);color:#6b4a00}
+.st-drafted{background:rgba(37,99,235,.92);color:#fff}
+.st-published{background:rgba(22,163,74,.92);color:#fff}
+.note-imgnum{
+  position:absolute;bottom:9px;right:9px;font-size:10.5px;color:#fff;background:rgba(0,0,0,.5);
+  padding:2px 7px;border-radius:6px;backdrop-filter:blur(6px);
+}
+.note-body{padding:13px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.note-body h4{font-size:14px;font-weight:650;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-excerpt{font-size:12px;color:var(--sub);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-tags{display:flex;gap:5px;flex-wrap:wrap}
+.note-tags span{font-size:10.5px;color:#8d94a3;background:#f6f7f9;padding:2px 7px;border-radius:5px}
+.note-metrics{display:flex;gap:12px;font-size:11px;color:var(--sub);border-top:1px solid var(--line);padding-top:9px;margin-top:auto}
+.note-metrics b{color:var(--ink-2);font-weight:600;font-variant-numeric:tabular-nums}
+.note-acts{display:flex;gap:5px;padding:0 14px 13px}
+.note-acts .btn{flex:1;padding:7px 0;font-size:12px;border-radius:9px}
+
+/* ============ 周报 ============ */
+.report-hero{
+  background:linear-gradient(135deg,#1e1e22,#2d2d35);color:#fff;border-radius:var(--r-lg);
+  padding:26px 28px;position:relative;overflow:hidden;
+}
+.report-hero::after{
+  content:"";position:absolute;right:-70px;top:-80px;width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,36,66,.55),transparent 68%);
+}
+.report-hero .rh-top{display:flex;align-items:center;gap:9px;font-size:12px;color:#b6b6c0;margin-bottom:8px}
+.report-hero h3{font-size:21px;font-weight:700;letter-spacing:-.4px;margin-bottom:5px}
+.report-hero p{font-size:13px;color:#a5a5b0;max-width:560px;line-height:1.7}
+.report-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px;position:relative;z-index:1}
+.kpi{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 15px}
+.kpi span{font-size:11.5px;color:#9a9aa6;display:block;margin-bottom:5px}
+.kpi b{font-size:22px;font-weight:700;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+.kpi i{font-size:11px;font-style:normal;margin-left:5px}
+.up{color:#ff7a8a}.down{color:#6ee7a8}
+
+.report-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px;align-items:start}
+.rc-full{grid-column:1/-1}
+.rc-head{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.rc-num{
+  width:24px;height:24px;border-radius:8px;background:var(--brand-l);color:var(--brand);
+  font-size:12px;font-weight:700;display:grid;place-items:center;flex:none;
+}
+.rc-head h4{font-size:14px;font-weight:650}
+.rc-head span{font-size:11.5px;color:var(--sub);margin-left:auto}
+
+.adv-list{display:flex;flex-direction:column;gap:11px}
+.adv{
+  border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;transition:.15s;
+}
+.adv:hover{border-color:#ffd6dd;background:#fffcfc}
+.adv-top{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.adv-top b{font-size:13px;font-weight:650}
+.adv-tag{font-size:10px;padding:1px 6px;border-radius:5px;font-weight:500}
+.t-high{background:#ffeef0;color:#d31c36}
+.t-mid{background:#fff7e8;color:#b45309}
+.t-low{background:#f1f6fd;color:#2a5fa8}
+.adv p{font-size:12.5px;color:var(--ink-2);line-height:1.7}
+.adv .how{font-size:12px;color:var(--sub);margin-top:6px;padding-top:7px;border-top:1px dashed var(--line)}
+.adv .how b{color:var(--brand);font-weight:600}
+
+.diag-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.diag-row .lb{font-size:12.5px;color:var(--ink-2);width:78px;flex:none}
+.diag-track{flex:1;height:7px;background:#f2f2f5;border-radius:4px;overflow:hidden}
+.diag-fill{height:100%;border-radius:4px;transition:width .7s}
+.diag-val{font-size:11.5px;color:var(--sub);width:52px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
+
+.viral{padding:0;border-top:1px solid var(--line);display:flex;flex-direction:column}
+.viral-item{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.viral-item:last-child{border-bottom:none;padding-bottom:0}
+.viral-thumb{
+  width:56px;height:72px;border-radius:9px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(140deg,#ffe4e8,#fff3e8);font-size:20px;
+}
+.viral-body{flex:1;min-width:0}
+.viral-body h5{font-size:13px;font-weight:650;margin-bottom:4px;line-height:1.45}
+.viral-body .vm{font-size:11px;color:var(--brand);font-weight:600;margin-bottom:4px}
+.viral-body p{font-size:11.5px;color:var(--sub);line-height:1.6}
+.viral-body .learn{margin-top:5px;font-size:11.5px;color:#15803d;background:#f3fbf6;padding:4px 8px;border-radius:6px;display:inline-block}
+
+.week-strip{display:flex;gap:9px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px}
+.day-cell{flex:1;min-width:64px;text-align:center;padding:9px 4px;border-radius:10px;background:#fafafb;border:1px solid var(--line)}
+.day-cell b{display:block;font-size:12.5px;font-variant-numeric:tabular-nums}
+.day-cell span{font-size:10.5px;color:var(--sub)}
+.day-cell.has{background:var(--brand-l);border-color:#ffdde3}
+.day-cell.has b{color:var(--brand)}
+
+/* ============ 设置 ============ */
+.settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--sub);font-weight:500;margin-bottom:5px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.test-result{font-size:12px;margin-top:10px;min-height:18px;color:var(--sub)}
+.test-result.ok{color:var(--green)}
+.test-result.err{color:#dc2626}
+.mono-toggle{margin-top:12px;display:inline-block}
+.sqlbox{
+  margin-top:10px;background:#1e1e22;color:#d4d4dc;border-radius:10px;padding:13px;
+  font-size:11.5px;line-height:1.7;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;
+  white-space:pre;
+}
+.stat-lines{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.stat-lines div{display:flex;justify-content:space-between;font-size:12.5px;color:var(--sub)}
+.stat-lines b{color:var(--ink-2);font-weight:600}
+
+/* ============ 云端配置向导 ============ */
+.setup-steps{list-style:none;padding:0;margin:0 0 18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+.setup-steps li{display:flex;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fafafb}
+.setup-steps .sn{
+  width:20px;height:20px;border-radius:6px;background:var(--brand);color:#fff;font-size:11.5px;
+  font-weight:700;display:grid;place-items:center;flex:none;margin-top:1px;
+}
+.setup-steps > li > div > b{font-size:12.5px;display:block;margin-bottom:4px}
+.setup-steps p{font-size:12px;color:var(--ink-2);line-height:1.7}
+.setup-steps p b{display:inline;font-size:12px;color:var(--ink)}
+.setup-steps a{color:var(--brand);text-decoration:none;border-bottom:1px solid rgba(255,36,66,.3)}
+.setup-steps code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;background:#eef0f3;padding:1px 5px;border-radius:4px;color:#c026d3}
+.cloud-form{max-width:560px}
+
+/* ============ 抽屉 ============ */
+.drawer-mask{
+  position:fixed;inset:0;background:rgba(20,20,25,.4);backdrop-filter:blur(3px);
+  z-index:80;animation:fadeIn .22s both;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(560px,94vw);background:#fff;z-index:81;
+  display:flex;flex-direction:column;box-shadow:-24px 0 60px -30px rgba(0,0,0,.4);
+  animation:slideIn .28s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes slideIn{from{transform:translateX(40px);opacity:.6}to{transform:none;opacity:1}}
+.drawer-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--line);flex:none;
+}
+.drawer-head h3{font-size:15px;font-weight:650}
+.drawer-body{padding:18px 20px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+.drawer-foot{
+  padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;
+  background:#fdfdfd;flex:none;flex-wrap:wrap;
+}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.metric-grid .field{margin:0}
+
+/* ============ 草稿箱桥接 ============ */
+.push-block{
+  background:linear-gradient(160deg,#fff5f6,#fff);border:1px solid #ffe0e5;
+  border-radius:14px;padding:14px;
+}
+.push-hint{font-size:12px;color:var(--sub);line-height:1.6;margin-top:9px;text-align:center}
+.step-list{display:flex;flex-direction:column;gap:14px}
+.step{display:flex;gap:11px;align-items:flex-start}
+.step>b{
+  width:22px;height:22px;border-radius:7px;background:var(--brand-l);color:var(--brand);
+  font-size:12px;font-weight:700;display:grid;place-items:center;flex:none;margin-top:1px;
+}
+.step h5{font-size:13px;font-weight:650;margin:0 0 3px}
+.step p{font-size:12.5px;color:var(--ink-2);line-height:1.65}
+.step code,.panel-desc code{
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;
+  background:#f4f4f6;padding:1px 6px;border-radius:5px;color:#c026d3;
+}
+.step code.path{display:block;margin-top:6px;padding:8px 10px;word-break:break-all;color:#1f2937;background:#f7f7f9;border:1px solid var(--line)}
+.warn-box{background:#f6f8ff;border:1px solid #dbeafe;border-radius:12px;padding:12px 14px}
+.warn-box b{font-size:12.5px;display:block;margin-bottom:4px}
+.warn-box p{font-size:12.5px;color:var(--ink-2);line-height:1.7}
+.warn-box p b{display:inline;font-size:12.5px;color:var(--ink)}
+
+/* ============ Toast ============ */
+.toast-wrap{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{
+  background:rgba(28,28,32,.95);color:#fff;padding:10px 18px;border-radius:11px;font-size:13px;
+  box-shadow:var(--sh-lg);animation:toastIn .25s cubic-bezier(.22,1,.36,1) both;
+  display:flex;align-items:center;gap:8px;max-width:80vw;
+}
+.toast.out{animation:toastOut .22s both}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(.97)}}
+.toast.ok::before{content:"✓";color:#4ade80;font-weight:700}
+.toast.err::before{content:"!";color:#fca5a5;font-weight:700}
+
+/* ============ 加载 ============ */
+.spin{
+  width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  border-radius:50%;animation:rot .7s linear infinite;display:inline-block;
+}
+.btn-ghost .spin,.btn-soft .spin{border-color:rgba(0,0,0,.12);border-top-color:var(--brand)}
+@keyframes rot{to{transform:rotate(360deg)}}
+.skeleton{
+  border-radius:10px;background:linear-gradient(90deg,#f2f2f5 25%,#f8f8fa 50%,#f2f2f5 75%);
+  background-size:200% 100%;animation:sk 1.3s infinite;
+}
+@keyframes sk{to{background-position:-200% 0}}
+.gen-skeleton{padding:20px;display:flex;flex-direction:column;gap:10px}
+.gen-skeleton .skeleton:nth-child(1){height:16px;width:38%}
+.gen-skeleton .skeleton:nth-child(2){height:52px}
+.gen-skeleton .skeleton:nth-child(3){height:52px}
+.gen-skeleton .skeleton:nth-child(4){height:52px}
+
+/* ============ 响应式 ============ */
+@media (max-width:1180px){
+  .wb-main{grid-template-columns:minmax(0,1fr) 234px}
+  .studio-grid{grid-template-columns:300px minmax(0,1fr)}
+}
+@media (max-width:1000px){
+  .wb-grid{grid-template-columns:1fr}
+  .wb-side{position:static;flex-direction:row;flex-wrap:wrap}
+  .wb-side .dropzone{flex:1;min-width:240px}
+  .wb-side .panel{flex:1;min-width:240px}
+  .wb-main{grid-template-columns:1fr}
+  .wb-inspector{position:static;flex-direction:row}
+  .wb-inspector .panel{flex:1}
+  .studio-grid{grid-template-columns:1fr}
+  .studio-form{position:static}
+  .report-cols{grid-template-columns:1fr}
+  .settings-grid{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .topbar-inner{height:auto;padding:10px 14px;flex-wrap:wrap;gap:10px}
+  .brand-text p{display:none}
+  .tabs{order:3;width:100%;overflow-x:auto;gap:2px;padding-bottom:2px}
+  .tab{padding:7px 11px;font-size:12.5px}
+  .top-actions{margin-left:auto}
+  .app{padding:16px 14px 30px}
+  .view-head h2{font-size:19px}
+  .head-stats{display:none}
+  .wb-inspector{flex-direction:column}
+  .report-kpis{grid-template-columns:repeat(2,1fr)}
+  .img-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));max-height:none}
+  .note-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  .cover-tips{grid-template-columns:1fr}
+  .selectbar{bottom:10px;padding:9px 11px;gap:10px}
+  .sel-thumbs{display:none}
+}
+
+@media (max-width:900px){
+  .setup-steps{grid-template-columns:1fr}
+  .cloud-form{max-width:none}
+}
+
+.scene-line{
+  font-size:12px;line-height:1.7;color:var(--ink-2);
+  background:#f7f7f9;border:1px solid var(--line);border-radius:10px;
+  padding:9px 12px;margin:-4px 0 12px;
+}
+.scene-line.warn{background:#fff8e8;border-color:#ffe6b3;color:#8a5a00}
+
+</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍠</text></svg>" />
+</head>
+<body>
+
+<!-- ============ 顶栏 ============ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">薯</div>
+      <div class="brand-text">
+        <h1>小红薯 Agent</h1>
+        <p>内容生产 · 素材管理 · 数据复盘</p>
+      </div>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-view="workbench">
+        <svg viewBox="0 0 24 24"><path d="M4 5h16v5H4zM4 14h7v5H4zM15 14h5v5h-5z"/></svg>工作台
+      </button>
+      <button class="tab" data-view="studio">
+        <svg viewBox="0 0 24 24"><path d="M4 20h16M6 16l8.5-8.5a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L9.5 19.5 6 20z"/></svg>文案工坊
+      </button>
+      <button class="tab" data-view="notes">
+        <svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/></svg>笔记中心
+        <span class="tab-badge" id="badge-notes" hidden>0</span>
+      </button>
+      <button class="tab" data-view="report">
+        <svg viewBox="0 0 24 24"><path d="M4 20V10m5 10V4m5 16v-7m5 7V7"/></svg>周报
+        <span class="dot-new" id="dot-report" hidden></span>
+      </button>
+      <button class="tab" data-view="settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10l2 2M19 5l-2 2M7 17l-2 2"/></svg>设置
+      </button>
+    </nav>
+
+    <div class="top-actions">
+      <div class="sync-pill" id="bridgePill" title="小红书草稿箱桥接状态（点击查看安装步骤）">
+        <i class="dot"></i><span id="bridgeText">扩展未连接</span>
+      </div>
+      <div class="sync-pill" id="syncPill" title="数据存储状态">
+        <i class="dot"></i><span id="syncText">本地</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnQuickNew">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建笔记
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- ============ 工作台 ============ -->
+  <section class="view active" id="view-workbench">
+    <div class="view-head">
+      <div>
+        <h2>素材工作台</h2>
+        <p data-sub>传图 → 自动分组成稿 → 选图配文案。发过的素材会自动出库，不会重复用。</p>
+      </div>
+      <div class="head-stats" id="wbStats"></div>
+    </div>
+
+    <div class="wb-grid">
+      <!-- 左：上传 + 分组 -->
+      <aside class="wb-side">
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept="image/*" multiple hidden />
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5l5 5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </div>
+          <h3>拖入或点击上传</h3>
+          <p>支持批量 · 也可直接 Ctrl+V 粘贴图片</p>
+          <span class="dz-hint">每次上传 = 一个素材组</span>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h4>素材组 <span class="count" id="groupCount">0</span></h4>
+            <button class="txt-btn" id="btnGroupNew">+ 空组</button>
+          </div>
+          <div class="group-list" id="groupList"></div>
+        </div>
+      </aside>
+
+      <!-- 右：图片网格 -->
+      <div class="wb-main">
+        <div class="panel panel-grow">
+          <div class="panel-head">
+            <h4 id="groupTitle">全部素材</h4>
+            <div class="panel-tools">
+              <button class="chip-btn" id="btnSelectAll">全选本组</button>
+              <button class="chip-btn" id="btnClearSel">清空选择</button>
+              <button class="chip-btn danger" id="btnDelSel">删除所选</button>
+            </div>
+          </div>
+
+          <div class="img-grid" id="imgGrid"></div>
+          <div class="empty" id="imgEmpty">
+            <div class="empty-emoji">📷</div>
+            <p>还没有素材，先上传一组照片吧</p>
+          </div>
+        </div>
+
+        <div class="wb-inspector">
+          <div class="panel agent-card">
+            <div class="agent-head">
+              <div class="agent-ava">🍠</div>
+              <div>
+                <strong>Agent 今日建议</strong>
+                <p id="agentTipTime">刚刚更新</p>
+              </div>
+            </div>
+            <ul class="agent-tips" id="agentTips"></ul>
+            <button class="btn btn-soft btn-block btn-sm" id="btnRefreshTip">换一批建议</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h4>热点雷达</h4><button class="txt-btn" id="btnRefreshHot">刷新</button></div>
+            <div class="hot-list" id="hotList"></div>
+            <p class="hot-foot">点击任一条 → 直接带入文案工坊</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="selectbar" id="selectbar">
+      <div class="sel-info"><b id="selCount">0</b> 张已选</div>
+      <div class="sel-thumbs" id="selThumbs"></div>
+      <button class="btn btn-primary" id="btnToStudio">用这些图写笔记 →</button>
+    </div>
+  </section>
+
+  <!-- ============ 文案工坊 ============ -->
+  <section class="view" id="view-studio">
+    <div class="view-head">
+      <div>
+        <h2>文案工坊</h2>
+        <p>结合热点选题 + 近期爆款结构生成标题与正文，标题和封面建议都按点击率逻辑来写。</p>
+      </div>
+      <div class="ai-mode-pill" id="aiModePill"></div>
+    </div>
+
+    <div class="studio-grid">
+      <!-- 左：配置 -->
+      <aside class="panel studio-form">
+        <div class="form-block">
+          <label>本次笔记讲什么 <span class="req">必填</span></label>
+          <textarea id="inTheme" rows="3" placeholder="例：一个人住的出租屋，300 元把阳台改成咖啡角"></textarea>
+        </div>
+
+        <div class="form-block">
+          <label>内容类型</label>
+          <div class="chips" id="chipStyle">
+            <button class="chip active" data-v="种草分享">种草分享</button>
+            <button class="chip" data-v="测评对比">测评对比</button>
+            <button class="chip" data-v="教程干货">教程干货</button>
+            <button class="chip" data-v="日常vlog">日常</button>
+            <button class="chip" data-v="避坑指南">避坑指南</button>
+            <button class="chip" data-v="清单合集">清单合集</button>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <label>语气 / 人设</label>
+          <div class="chips" id="chipTone">
+            <button class="chip active" data-v="真实闺蜜">真实闺蜜</button>
+            <button class="chip" data-v="专业博主">专业博主</button>
+            <button class="chip" data-v="搞笑嘴替">搞笑嘴替</button>
+            <button class="chip" data-v="温柔治愈">温柔治愈</button>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <label>挂靠热点 <span class="hint">可多选，来自今日热榜</span></label>
+          <div class="chips chips-hot" id="chipHot"></div>
+        </div>
+
+        <div class="form-block">
+          <label>配图（来自工作台）</label>
+          <div class="studio-thumbs" id="studioThumbs"></div>
+        </div>
+
+        <button class="btn btn-primary btn-block btn-lg" id="btnGenerate">
+          <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+          生成笔记
+        </button>
+        <p class="form-foot">生成后可逐条换标题，正文支持直接编辑。</p>
+      </aside>
+
+      <!-- 右：结果 -->
+      <div class="studio-result" id="studioResult">
+        <div class="empty empty-lg">
+          <div class="empty-emoji">✍️</div>
+          <h3>还没有生成结果</h3>
+          <p>填写左边的主题，点「生成笔记」，会同时给出 5 个标题方案 + 正文 + 话题 + 封面文案</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 笔记中心 ============ -->
+  <section class="view" id="view-notes">
+    <div class="view-head">
+      <div>
+        <h2>笔记中心</h2>
+        <p>草稿、待发、已发全在这里。标记已发后素材自动出库，同一组图不会被重复使用。</p>
+      </div>
+      <div class="seg" id="noteFilter">
+        <button class="seg-btn active" data-f="all">全部</button>
+        <button class="seg-btn" data-f="draft">草稿</button>
+        <button class="seg-btn" data-f="ready">待发</button>
+        <button class="seg-btn" data-f="published">已发</button>
+      </div>
+    </div>
+    <div class="note-grid" id="noteGrid"></div>
+    <div class="empty" id="noteEmpty">
+      <div class="empty-emoji">📝</div>
+      <p>还没有笔记。去「文案工坊」生成第一篇吧</p>
+    </div>
+  </section>
+
+  <!-- ============ 周报 ============ -->
+  <section class="view" id="view-report">
+    <div class="view-head">
+      <div>
+        <h2>数据周报</h2>
+        <p>每周一自动生成上周复盘：内容改善、数据诊断、爆款拆解。</p>
+      </div>
+      <div class="head-tools">
+        <button class="btn btn-ghost btn-sm" id="btnPrevWeek">上一周</button>
+        <span class="week-label" id="weekLabel"></span>
+        <button class="btn btn-ghost btn-sm" id="btnNextWeek">下一周</button>
+        <button class="btn btn-primary btn-sm" id="btnGenReport">生成这份周报</button>
+      </div>
+    </div>
+    <div id="reportBody"></div>
+  </section>
+
+  <!-- ============ 设置 ============ -->
+  <section class="view" id="view-settings">
+    <div class="view-head">
+      <div>
+        <h2>设置</h2>
+        <p>接入大模型与云端数据库。不填也能用——内置引擎会离线跑。</p>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <div class="panel">
+        <div class="panel-head"><h4>大模型接入</h4><span class="tag ok" id="llmTag">未接入</span></div>
+        <p class="panel-desc">兼容 OpenAI 格式的任意服务（DeepSeek / 通义 / Moonshot / 自建网关）。Key 只存在你本机浏览器里。</p>
+        <div class="field"><label>API 地址</label><input id="llmBase" placeholder="https://api.deepseek.com/v1" /></div>
+        <div class="field"><label>模型名（纯文字，写周报和分析用）</label><input id="llmModel" placeholder="deepseek-chat" /></div>
+        <div class="field"><label><b>视觉模型</b>（能看图的，按图写文案就靠它）</label><input id="llmVision" placeholder="qwen-vl-max" /></div>
+        <div class="field"><label>API Key</label><input id="llmKey" type="password" placeholder="sk-..." /></div>
+        <p class="panel-desc" style="margin:-2px 0 12px">不填视觉模型的话，文案只能是模板骨架（因为它看不到你的图）。<br>
+        <b>本机转发</b>：用「启动-免费模型.cmd」打开本应用，点第一个按钮——不填 Key、不花钱，但要开着电脑。<br>
+        <b>云端转发</b>：点第二个按钮，手机电脑都能用、不依赖电脑开机，Key 栏粘「云端口令.txt」里的口令。</p>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-sm" id="btnPresetFree">智谱免费 · 本机转发（要开电脑）</button>
+          <button class="btn btn-primary btn-sm" id="btnPresetCloud">智谱免费 · 云端转发（不用开电脑）</button>
+        </div>
+        <div class="btn-row" style="margin-top:-2px">
+          <button class="btn btn-soft btn-sm" id="btnSaveLLM">保存并测试</button>
+        </div>
+        <div class="btn-row" style="margin-top:-2px">
+          <button class="btn btn-ghost btn-sm" id="btnPresetAli">阿里云百炼 · 自带免费额度</button>
+          <button class="btn btn-ghost btn-sm" id="btnPresetSF">硅基流动 · 约 7 元用两年</button>
+        </div>
+        <div class="btn-row" style="margin-top:-2px">
+          <button class="btn btn-ghost btn-sm" id="btnClearLLM">清除配置</button>
+        </div>
+        <p class="test-result" id="llmTestResult"></p>
+      </div>
+
+      <div class="panel" style="grid-column:1/-1;order:-1">
+        <div class="panel-head">
+          <h4>云端数据库 · 让手机和电脑共用一份数据</h4>
+          <span class="tag" id="cloudTag">未配置</span>
+        </div>
+        <p class="panel-desc">用 Supabase 免费版（不用信用卡）。接上之后，电脑上写的笔记，手机浏览器打开也是同一份；设置只需做一次。</p>
+
+        <ol class="setup-steps">
+          <li><span class="sn">1</span><div><b>注册账号</b><p>打开 <a href="https://supabase.com/dashboard" target="_blank" rel="noopener">supabase.com</a>，用邮箱注册（继续用 Google/GitHub 登录也行）</p></div></li>
+          <li><span class="sn">2</span><div><b>新建项目</b><p>点 <code>New project</code>，名字随便填；<b>Region 选 Singapore 或 Tokyo</b>（离你近）；数据库密码随便设一个，记不记都行</p></div></li>
+          <li><span class="sn">3</span><div><b>建两张表</b><p>左侧点 <code>SQL Editor</code> → <code>New query</code> → 点下面「复制建表 SQL」→ 粘贴 → 点 <code>Run</code></p>
+            <button class="btn btn-soft btn-sm" id="btnCopySQL" style="margin-top:8px">复制建表 SQL</button>
+            <button class="txt-btn" id="btnShowSQL" style="margin-left:10px">查看内容</button>
+            <pre class="sqlbox" id="sqlBox" hidden></pre>
+          </div></li>
+          <li><span class="sn">4</span><div><b>拿两个值填进下面</b>
+            <p><b>密钥：</b>左侧 <code>Settings</code> → <code>API Keys</code> → 复制 <b>Publishable key</b>（<code>sb_publishable_…</code>）那行右边的复制图标。<br>
+            <span style="color:#c026d3">千万别用下面的 Secret key</span>（那是管理员密钥，不能放网页里）。</p>
+            <p style="margin-top:6px"><b>地址：</b>看浏览器地址栏 <code>dashboard/project/<b>一串字母</b></code>，地址就是 <code>https://那串字母.supabase.co</code>；<br>或左侧 <code>Settings → Data API</code> 里的 Project URL。</p>
+            <p style="margin-top:6px;color:var(--sub)">如果你的界面写的是 <code>anon</code> / <code>service_role</code>（旧版），点顶部 <code>View legacy API keys</code>，复制 <code>anon</code> 那条也一样能用。</p>
+          </div></li>
+        </ol>
+
+        <div class="cloud-form">
+          <div class="field"><label>Project URL</label><input id="sbUrl" placeholder="https://你的项目字母.supabase.co" /></div>
+          <div class="field"><label>Publishable key（sb_publishable_… ；旧版界面则是 anon 那串 eyJ…）</label><input id="sbKey" type="password" placeholder="sb_publishable_..." /></div>
+          <div class="field"><label>空间 ID（自己起个名字，手机上也填同一个就能共用）</label><input id="sbSpace" placeholder="xiaohongshu-home" /></div>
+          <div class="btn-row">
+            <button class="btn btn-primary btn-sm" id="btnSaveCloud">连接并同步</button>
+            <button class="btn btn-ghost btn-sm" id="btnPull">从云端拉取</button>
+            <button class="btn btn-ghost btn-sm" id="btnPush">推送到云端</button>
+          </div>
+          <p class="test-result" id="cloudResult"></p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h4>数据管理</h4></div>
+        <p class="panel-desc">数据默认存在浏览器 IndexedDB（图片）+ localStorage（文案）。可导出成 JSON 备份。</p>
+        <div class="btn-row">
+          <button class="btn btn-ghost btn-sm" id="btnExport">导出备份</button>
+          <button class="btn btn-ghost btn-sm" id="btnImport">导入备份</button>
+          <input type="file" id="importFile" accept="application/json" hidden />
+          <button class="btn btn-ghost btn-sm danger" id="btnReset">清空全部</button>
+        </div>
+        <div class="stat-lines" id="dataStats"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h4>发布习惯</h4></div>
+        <div class="field"><label>常用发布时间</label>
+          <select id="prefTime">
+            <option>07:30 - 09:00 早通勤</option>
+            <option selected>12:00 - 13:30 午休</option>
+            <option>17:30 - 19:00 晚高峰</option>
+            <option>20:00 - 22:30 黄金档</option>
+          </select>
+        </div>
+        <div class="field"><label>账号领域</label>
+          <select id="prefNiche">
+            <option>美食探店</option><option>穿搭美妆</option><option>家居生活</option>
+            <option>旅行出行</option><option>健身运动</option><option>学习成长</option>
+            <option>宠物</option><option>数码测评</option><option>摄影摄像</option>
+          </select>
+        </div>
+        <p class="panel-desc">周报的改善建议会按这个领域来给，更贴合你的拍摄场景。</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h4>自动生成草稿</h4><span class="tag" id="agTag">已关闭</span></div>
+        <p class="panel-desc">到点自动用<b>你的素材 + 当天热点</b>生成几篇稿子，直接进「笔记中心」待发区。手机上打开也能看到。<br>
+        <span style="color:var(--sub-2)">注意：生成的是文案稿；送进小红书草稿箱那一下仍需在装了扩展的电脑上点，因为要借你的登录状态。</span></p>
+        <div class="field"><label>每天几点之后补齐</label>
+          <select id="agTime">
+            <option>07:00</option><option>08:00</option><option>09:00</option>
+            <option>12:00</option><option>15:00</option><option>18:00</option>
+            <option selected>20:00</option><option>21:00</option><option>22:00</option>
+          </select>
+        </div>
+        <div class="field"><label>每次生成几篇</label>
+          <select id="agCount">
+            <option>1</option><option selected>2</option><option>3</option><option>5</option>
+          </select>
+        </div>
+        <div class="field"><label>选题方向（一行一个，留空则按当天热点轮换）</label>
+          <textarea id="agSeeds" rows="3" placeholder="例：出租屋改造&#10;一人食早餐&#10;通勤穿搭" style="width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;resize:vertical"></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-sm" id="btnAgSave">保存并开启</button>
+          <button class="btn btn-ghost btn-sm" id="btnAgRun">立即试跑一次</button>
+          <button class="btn btn-ghost btn-sm" id="btnAgOff">关闭</button>
+        </div>
+        <p class="test-result" id="agResult"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ 笔记编辑抽屉 ============ -->
+<div class="drawer-mask" id="drawerMask" hidden></div>
+<aside class="drawer" id="drawer" hidden>
+  <div class="drawer-head">
+    <h3 id="drawerTitle">编辑笔记</h3>
+    <button class="icon-btn" id="drawerClose">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot"></div>
+</aside>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* cloud.config.js */
+/* ============================================================
+ *  cloud.config.js — 内置云配置
+ *  把 Supabase 的地址 / publishable key / 空间 ID 填在这里，
+ *  之后任何设备、任何地址打开这个应用，都会自动连上云端，
+ *  不需要在手机上再填一次。
+ *
+ *  publishable key 本来就是设计成公开放在浏览器里的（数据由 RLS 保护），
+ *  所以写进前端文件是安全的。但不要把 secret / service_role 填进来。
+ * ============================================================ */
+window.XHS_CLOUD = {
+  url: 'https://yahrwlgxaziopzuemyan.supabase.co',
+  key: 'sb_publishable__d54GoAP4OlrY8J6BliTOA_y-41bcZM',
+  space: 'xiaohongshu-home'
+};
+
+</script>
+<script>
+/* store.js */
+/* ============================================================
+ *  store.js — 数据层
+ *  · 文案/结构 → localStorage
+ *  · 图片 → IndexedDB（避免 localStorage 5MB 上限）
+ *  · 云端 → Supabase REST（可选，配置后自动双向同步）
+ * ============================================================ */
+
+const Store = (() => {
+  const LS_KEY = 'xhs_agent_state_v1';
+  const DB_NAME = 'xhs_agent_db';
+  const DB_VER = 1;
+  const ASSET_STORE = 'assets';
+
+  let dbPromise = null;
+  const urlCache = new Map();   // id -> objectURL
+
+  /* ---------- 默认状态 ---------- */
+  function blank() {
+    return {
+      v: 1,
+      meta: { updatedAt: 0 },
+      groups: [],
+      images: [],
+      notes: [],
+      reports: [],
+      settings: {
+        llm: { base: 'https://api.deepseek.com/v1', model: 'deepseek-chat', key: '' },
+        cloud: (() => {
+          const b = (typeof window !== 'undefined' && window.XHS_CLOUD) || {};
+          return { url: b.url || '', key: b.key || '', space: b.space || '' };
+        })(),
+        pref: { time: '12:00 - 13:30 午休', niche: '家居生活' },
+        autogen: { on: false, time: '20:00', count: 2, seeds: '', lastRun: '' },
+        seenWeek: '',
+        seeded: false
+      }
+    };
+  }
+
+  let state = blank();
+
+  /* ---------- IndexedDB ---------- */
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) return reject(new Error('no idb'));
+      const req = indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(ASSET_STORE)) db.createObjectStore(ASSET_STORE);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return dbPromise;
+  }
+
+  async function idbPut(key, val) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(ASSET_STORE, 'readwrite');
+      tx.objectStore(ASSET_STORE).put(val, key);
+      tx.oncomplete = () => res(true);
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+
+  async function idbGet(key) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(ASSET_STORE, 'readonly');
+      const r = tx.objectStore(ASSET_STORE).get(key);
+      r.onsuccess = () => res(r.result || null);
+      r.onerror = () => rej(r.error);
+    });
+  }
+
+  async function idbDel(key) {
+    const db = await openDB();
+    return new Promise((res) => {
+      const tx = db.transaction(ASSET_STORE, 'readwrite');
+      tx.objectStore(ASSET_STORE).delete(key);
+      tx.oncomplete = () => res(true);
+    });
+  }
+
+  async function idbKeys() {
+    const db = await openDB();
+    return new Promise((res) => {
+      const tx = db.transaction(ASSET_STORE, 'readonly');
+      const r = tx.objectStore(ASSET_STORE).getAllKeys();
+      r.onsuccess = () => res(r.result || []);
+    });
+  }
+
+  /* ---------- 图片 URL ---------- */
+  async function url(id) {
+    if (urlCache.has(id)) return urlCache.get(id);
+    const data = await idbGet(id);
+    if (!data) return '';
+    if (typeof data === 'string' && data.startsWith('data:')) {
+      urlCache.set(id, data);
+      return data;
+    }
+    if (data instanceof Blob) {
+      const u = URL.createObjectURL(data);
+      urlCache.set(id, u);
+      return u;
+    }
+    return '';
+  }
+
+  async function putAsset(id, dataUrlOrBlob) {
+    urlCache.delete(id);
+    await idbPut(id, dataUrlOrBlob);
+  }
+
+  /* ---------- 状态读写 ---------- */
+  /* 关键：始终复用同一个 state 对象，外部持有的引用才不会失效 */
+  function replaceState(next) {
+    const base = blank();
+    const merged = Object.assign(base, next || {});
+    merged.settings = Object.assign(blank().settings, (next || {}).settings || {});
+    merged.settings.llm = Object.assign(blank().settings.llm, ((next || {}).settings || {}).llm || {});
+    merged.settings.cloud = Object.assign(blank().settings.cloud, ((next || {}).settings || {}).cloud || {});
+    merged.settings.pref = Object.assign(blank().settings.pref, ((next || {}).settings || {}).pref || {});
+    merged.settings.autogen = Object.assign(blank().settings.autogen, ((next || {}).settings || {}).autogen || {});
+    Object.keys(state).forEach((k) => { delete state[k]; });
+    Object.assign(state, merged);
+    return state;
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) replaceState(JSON.parse(raw));
+    } catch (e) {
+      console.warn('[store] load failed', e);
+    }
+    return state;
+  }
+
+  let saveTimer = null;
+  let onSaved = null;
+  let onSynced = null;
+
+  function save(opts = {}) {
+    state.meta = Object.assign({}, state.meta, { updatedAt: Date.now() });
+    const payload = JSON.stringify(state);
+    try {
+      localStorage.setItem(LS_KEY, payload);
+    } catch (e) {
+      console.warn('[store] localStorage full', e);
+    }
+    if (onSaved) onSaved(state);
+    if (!opts.silent && Cloud.ready()) {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        Cloud.push()
+          .then(() => onSynced && onSynced('ok'))
+          .catch(() => onSynced && onSynced('err'));
+      }, 2200);
+    }
+  }
+
+  /* ---------- 工具 ---------- */
+  const uid = (p = 'id') => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  function weekRange(offset = 0) {
+    const now = new Date();
+    const dow = (now.getDay() + 6) % 7;            // 周一=0
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow + offset * 7);
+    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    return { start: monday, end: sunday };
+  }
+
+  const fmtDate = (d) => {
+    const x = new Date(d);
+    return `${x.getMonth() + 1}月${x.getDate()}日`;
+  };
+  const sameDay = (a, b) => {
+    const x = new Date(a), y = new Date(b);
+    return x.getFullYear() === y.getFullYear() && x.getMonth() === y.getMonth() && x.getDate() === y.getDate();
+  };
+
+  /* ============================================================
+   *  Cloud — Supabase REST
+   * ============================================================ */
+  const Cloud = {
+    cfg() {
+      const c = state.settings.cloud || {};
+      // 容错：可能被粘成 .../rest/v1，或末尾带斜杠
+      const url = (c.url || '').trim()
+        .replace(/\/+$/, '')
+        .replace(/\/rest\/v1$/i, '');
+      return {
+        url,
+        key: (c.key || '').trim(),
+        space: (c.space || '').trim()
+      };
+    },
+    ready() {
+      const c = this.cfg();
+      return !!(c.url && c.key && c.space);
+    },
+    headers() {
+      const c = this.cfg();
+      return {
+        apikey: c.key,
+        Authorization: 'Bearer ' + c.key,
+        'Content-Type': 'application/json'
+      };
+    },
+    async request(path, opts = {}) {
+      const c = this.cfg();
+      const res = await fetch(c.url + path, Object.assign({ headers: this.headers() }, opts));
+      if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Supabase ${res.status}: ${t.slice(0, 160)}`);
+      }
+      const txt = await res.text();
+      return txt ? JSON.parse(txt) : null;
+    },
+
+    /* 全量推送：结构 + 素材 */
+    async push(progress) {
+      if (!this.ready()) throw new Error('云端未配置');
+      const c = this.cfg();
+      const note = (m) => progress && progress(m);
+
+      note('上传结构数据…');
+      await this.request('/rest/v1/agent_state?on_conflict=space', {
+        method: 'POST',
+        headers: Object.assign(this.headers(), { Prefer: 'resolution=merge-duplicates,return=minimal' }),
+        body: JSON.stringify([{ space: c.space, data: state, updated_at: new Date().toISOString() }])
+      });
+
+      // 只补传云端缺失的素材（含已发布笔记里的历史素材）
+      note('检查素材…');
+      let existing = [];
+      try {
+        existing = await this.request(`/rest/v1/agent_asset?space=eq.${encodeURIComponent(c.space)}&select=id`);
+      } catch (e) { /* 表不存在时忽略 */ }
+      const have = new Set((existing || []).map((r) => r.id));
+      const idSet = new Set(state.images.map((im) => im.id));
+      state.notes.forEach((n) => (n.images || []).forEach((id) => idSet.add(id)));
+      const missing = [...idSet].filter((id) => !have.has(id));
+      if (missing.length) {
+        const rows = [];
+        for (const id of missing) {
+          const d = await idbGet(id);
+          if (d) rows.push({ space: c.space, id, data: d });
+        }
+        for (let i = 0; i < rows.length; i += 4) {
+          const chunk = rows.slice(i, i + 4);
+          note(`上传素材 ${Math.min(i + 4, rows.length)}/${rows.length}`);
+          await this.request('/rest/v1/agent_asset?on_conflict=space,id', {
+            method: 'POST',
+            headers: Object.assign(this.headers(), { Prefer: 'resolution=merge-duplicates,return=minimal' }),
+            body: JSON.stringify(chunk)
+          });
+        }
+      }
+      note('已同步');
+      return true;
+    },
+
+    /* 全量拉取 */
+    async pull() {
+      if (!this.ready()) throw new Error('云端未配置');
+      const c = this.cfg();
+      const rows = await this.request(`/rest/v1/agent_state?space=eq.${encodeURIComponent(c.space)}&select=data,updated_at`);
+      if (!rows || !rows.length) return false;
+      const remote = rows[0].data;
+      if (!remote) return false;
+
+      // 保留本机 LLM / cloud 配置，其他以云端为准
+      const localLLM = state.settings.llm;
+      const localCloud = state.settings.cloud;
+      const remoteSettings = Object.assign({}, remote.settings, { llm: localLLM, cloud: localCloud });
+      replaceState(Object.assign({}, remote, { settings: remoteSettings }));
+      save({ silent: true });
+
+      // 拉素材
+      try {
+        let offset = 0;
+        const PAGE = 100;
+        for (;;) {
+          const assets = await this.request(
+            `/rest/v1/agent_asset?space=eq.${encodeURIComponent(c.space)}&select=id,data&limit=${PAGE}&offset=${offset}`
+          );
+          if (!assets || !assets.length) break;
+          for (const a of assets) {
+            urlCache.delete(a.id);
+            await idbPut(a.id, a.data);
+          }
+          if (assets.length < PAGE) break;
+          offset += PAGE;
+        }
+      } catch (e) { /* 素材表可选 */ }
+
+      return true;
+    },
+
+    /* 智能同步：按时间戳决定拉还是推，避免"云端空的"把本地数据覆盖掉 */
+    async sync(step) {
+      if (!this.ready()) return 'off';
+      const c = this.cfg();
+      const rows = await this.request(
+        `/rest/v1/agent_state?space=eq.${encodeURIComponent(c.space)}&select=updated_at`
+      );
+      const remoteHas = !!(rows && rows.length);
+      const remoteAt = remoteHas ? new Date(rows[0].updated_at).getTime() : 0;
+      const localAt = Number((state.meta || {}).updatedAt) || 0;
+      const localHasData = !!(state.notes.length || state.images.length || state.groups.length);
+
+      if (!remoteHas) { await this.push(step); return 'push'; }
+      if (!localHasData) { await this.pull(); return 'pull'; }
+      // 本地有数据但没有时间戳（老版本存下的）→ 以本地为准，别把工作成果冲掉
+      if (!localAt) { await this.push(step); return 'push'; }
+      if (remoteAt > localAt + 2000) { await this.pull(); return 'pull'; }
+      await this.push(step);
+      return 'push';
+    }
+  };
+
+  return {
+    get state() { return state; },
+    load, save, putAsset, url, idbGet, idbDel, idbKeys, uid, weekRange, fmtDate, sameDay,
+    Cloud,
+    set onSaved(fn) { onSaved = fn; },
+    set onSynced(fn) { onSynced = fn; }
+  };
+})();
+
+</script>
+<script>
+/* ai.js */
+/* ============================================================
+ *  ai.js — 内容智能层
+ *  · 热点雷达（内置热点库，按日轮换）
+ *  · 本地爆款引擎（离线可用，规则 + 模板矩阵）
+ *  · 大模型接入（OpenAI 兼容协议，配置后自动接管）
+ *  · 周报生成（数据诊断 + 拍摄改善 + 爆款拆解）
+ * ============================================================ */
+
+const AI = (() => {
+
+  /* ================= 热点库 ================= */
+  const HOT_POOL = [
+    ['多巴胺配色', '穿搭美妆', '高'], ['早 C 晚 A 护肤法', '穿搭美妆', '中'],
+    ['伪素颜妆教程', '穿搭美妆', '高'], ['通勤穿搭 5 分钟出门', '穿搭美妆', '高'],
+    ['小个子显高公式', '穿搭美妆', '中'], ['秋日毛衣叠穿', '穿搭美妆', '高'],
+    ['出租屋改造', '家居生活', '高'], ['阳台改咖啡角', '家居生活', '高'],
+    ['100 元搞定一面墙', '家居生活', '中'], ['ins 风收纳', '家居生活', '高'],
+    ['沙发角落氛围感', '家居生活', '中'], ['断舍离实录', '家居生活', '中'],
+    ['一人食仪式感', '美食探店', '高'], ['空气炸锅懒人菜', '美食探店', '高'],
+    ['城市咖啡地图', '美食探店', '高'], ['深夜食堂打卡', '美食探店', '中'],
+    ['减脂餐不难吃', '美食探店', '高'], ['巷子里的宝藏小店', '美食探店', '中'],
+    ['3 天 2 夜短途游', '旅行出行', '高'], ['Citywalk 路线', '旅行出行', '高'],
+    ['高铁 2 小时出逃', '旅行出行', '中'], ['小众县城旅游', '旅行出行', '高'],
+    ['露营装备清单', '旅行出行', '中'],
+    ['居家 20 分钟训练', '健身运动', '高'], ['跑步膝不疼', '健身运动', '中'],
+    ['久坐族拉伸', '健身运动', '高'], ['体态矫正', '健身运动', '高'],
+    ['考研自习室', '学习成长', '中'], ['效率手账', '学习成长', '中'],
+    ['读书笔记模板', '学习成长', '中'], ['副业搞钱思路', '学习成长', '高'],
+    ['新手铲屎官', '宠物', '高'], ['猫咪拍照姿势', '宠物', '高'],
+    ['狗狗洗澡攻略', '宠物', '中'],
+    ['千元机也能拍大片', '数码测评', '中'], ['充电宝避坑', '数码测评', '中'],
+    ['手机摄影参数', '摄影摄像', '高'], ['原相机出片', '摄影摄像', '高'],
+    ['逆光人像怎么拍', '摄影摄像', '高'], ['手机修图 3 步', '摄影摄像', '中']
+  ];
+
+  /* 标题 / 表达用的钩子词（已剔除一眼像 AI 的套话） */
+  const HOOKS = ['后悔没早知道', '亲测有效', '被问了好几次', '记下来能用很久', '避掉一个坑'];
+
+  const STYLE_META = {
+    '种草分享': { cta: '我自己会一直用下去，有其他想看的可以说。', point: '体验' },
+    '测评对比': { cta: '有想看其他款的可以点，我接着测。', point: '对比' },
+    '教程干货': { cta: '步骤都写清楚了，照着做就行，做不出来来骂我。', point: '步骤' },
+    '日常vlog': { cta: '今天也是普通但很好的一天。', point: '日常' },
+    '避坑指南': { cta: '这条建议收藏，能帮你省下不少冤枉钱。', point: '坑点' },
+    '清单合集': { cta: '先收藏，之后按需慢慢挑。', point: '清单' }
+  };
+
+  const TONE_META = {
+    '真实闺蜜': { open: '跟你说点掏心窝的', voice: '我', tail: '真的，不骗你' },
+    '专业博主': { open: '认真复盘一下', voice: '我', tail: '以上都是实测结论' },
+    '搞笑嘴替': { open: '本来只想安静当个废物', voice: '我', tail: '笑不活了，但真的有用' },
+    '温柔治愈': { open: '慢慢来，生活会给答案', voice: '我', tail: '愿你也被温柔以待' }
+  };
+
+  /* ================= 工具 ================= */
+  function todaySeed() {
+    const d = new Date();
+    return d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate();
+  }
+
+  function hotList(niche) {
+    const seed = todaySeed();
+    const scored = HOT_POOL.map((h, i) => {
+      const jitter = ((seed * (i + 7) * 9301 + 49297) % 233280) / 233280;
+      let heat = 30 + jitter * 68;
+      if (h[2] === '高') heat = Math.max(heat, 62 + jitter * 36);
+      if (niche && h[1] === niche) heat += 24;
+      return { tag: h[0], cat: h[1], heat: Math.round(heat), level: h[2] };
+    });
+    scored.sort((a, b) => b.heat - a.heat);
+    return scored.slice(0, 14).map((h, i) => ({
+      rank: i + 1,
+      tag: h.tag,
+      cat: h.cat,
+      heat: (h.heat * 431).toLocaleString('en-US'),
+      level: h.level
+    }));
+  }
+
+  const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const pick = (arr, n) => {
+    const c = arr.slice();
+    const out = [];
+    while (c.length && out.length < n) out.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]);
+    return out;
+  };
+
+  function shortTopic(theme) {
+    const raw = String(theme || '').trim();
+    if (!raw) return '这次的新尝试';
+    const clauses = raw.split(/[，。,.;；!！?？\n]+/).map((s) => s.trim()).filter(Boolean);
+    // 取信息量最大的一小句：长度为主；以数字开头的多是修饰语，要降权
+    let head = clauses.reduce((best, c) => {
+      let sc = c.length;
+      if (/\d/.test(c)) sc += 2;
+      if (/^\d/.test(c)) sc -= 3;
+      return sc > best.sc ? { c, sc } : best;
+    }, { c: '', sc: -1 }).c || raw;
+
+    head = head
+      .replace(/^(今天|最近|这次|终于|上午|晚上)?(我)?(想|要|来|准备|打算)?(跟你)?(分享一下|分享|推荐|聊聊|说说|记录一下)?(一下)?/, '')
+      .replace(/^我(最近|今天)?(在用|用的|在用的)?/, '')
+      .replace(/^\d+(\.\d+)?\s*(元|块|万)?\s*把/, '')
+      .replace(/^把/, '')
+      .replace(/(真的)?(很|超|太|挺)?(好用|好物|推荐|绝了|香|好看)+$/, '')
+      .trim();
+    if (!head) head = clauses[0] || raw;
+    if (head.length > 14) {
+      const cut = head.slice(0, 14);
+      head = /[的了和与及]$/.test(cut) ? cut.slice(0, -1) : cut;
+    }
+    return head;
+  }
+
+  function moodOf(theme) {
+    const t = String(theme);
+    const score = { home: 0, food: 0, fashion: 0, travel: 0 };
+    const hit = (re, k) => { const m = t.match(re); if (m) score[k] += m.length; };
+    hit(/出租屋|阳台|改造|房间|卧室|客厅|厨房|墙角|公寓|装修|布置|收纳|沙发|书桌|租房|床品|窗帘|灯|地毯/g, 'home');
+    hit(/咖啡[店馆厅]|咖啡馆|探店|餐厅|饭|菜|烘焙|面包|蛋糕|甜品|早餐|brunch|奶茶|食谱|外卖|锅/g, 'food');
+    hit(/穿搭|衣服|裙子|外套|鞋|包袋|口红|妆容|护肤|发型|显瘦|配色|面料|项链|配饰/g, 'fashion');
+    hit(/旅行|旅游|海边|山里|露营|民宿|酒店|机票|高铁|自驾|攻略|路线|县城/g, 'travel');
+    const best = Object.entries(score).sort((a, b) => b[1] - a[1])[0];
+    return best && best[1] > 0 ? best[0] : null;
+  }
+
+  /* 只认「钱」，时间/数量不算预算 */
+  function budgetOf(theme) {
+    const m = String(theme).match(/(\d+(?:\.\d+)?)\s*(元|块钱|块|万)/);
+    if (!m) return null;
+    return `${m[1]} ${m[2] === '块钱' ? '块' : m[2]}`.trim();
+  }
+
+  /* ================= 本地生成引擎 ================= */
+  function generateLocal(opt) {
+    const { theme, style = '种草分享', tone = '真实闺蜜', hots = [], niche = '家居生活', imgCount = 1 } = opt;
+    const topic = shortTopic(theme);
+    const hook = rand(HOOKS);
+    const sm = STYLE_META[style] || STYLE_META['种草分享'];
+    const tm = TONE_META[tone] || TONE_META['真实闺蜜'];
+    const hot = hots[0] || '';
+    const hot2 = hots[1] || '';
+    const num = Math.max(3, Math.min(7, 3 + (topic.length % 4)));
+    const budget = budgetOf(theme);
+
+    /* ---- 标题矩阵：每种公式不同的点击逻辑 ---- */
+    const wrap = (s) => (/^[\dA-Za-z]/.test(s) ? ' ' : '') + s + (/[\dA-Za-z]$/.test(s) ? ' ' : '');
+    /* 热点只在和主题有真实交集时才用，否则硬蹭最假 */
+    const shareChars = (a, b) => {
+      let n = 0;
+      new Set(String(a)).forEach((ch) => { if (String(b).includes(ch)) n++; });
+      return n;
+    };
+    const hotFits = hot && shareChars(topic, hot) >= 2;
+    const titles = [
+      { t: `${topic}｜这 ${num} 点没做好，钱就白花了`, why: '先给「会白花钱」的损失感，点进来求避坑' },
+      { t: `别再乱买${topic}了，先看这 ${num} 条`, why: '否定式开头 + 具体条数，痛点人群必点' },
+      hotFits
+        ? { t: `${hot}｜${topic}这样搭才成立`, why: '热词在前蹭流量池，后半句给结论' }
+        : { t: `${topic}怎么挑？我只看这 3 处`, why: '把选择题交给读者，收藏动机强' },
+      { t: `${topic}用了这阵子，好的坏的一起说`, why: '先说缺点再谈优点，可信度最高' },
+      budget
+        ? { t: `花 ${budget}，${wrap(topic)}也能好看`, why: '低成本高结果，反差感强' }
+        : { t: `${topic}不用买贵的，这 ${num} 处才关键`, why: '拆掉「贵才好看」的心理门槛' }
+    ];
+    if (style === '避坑指南') titles[1].t = `踩过坑才敢说｜${topic}这 3 个坑别碰`;
+    if (style === '清单合集') titles[3].t = `${num} 件配${wrap(topic)}，一次买齐不重复`;
+    if (style === '教程干货') titles[2].t = `${topic}从选到拍的完整流程，照着做`;
+
+    /* ---- 正文 ---- */
+    const pointBanks = {
+      home: [
+        '先把「视觉噪音」清掉，同一画面颜色控制在 3 个以内，出片立刻高级',
+        '主光只留一扇窗，侧光 + 45 度俯拍，比顶灯好看十倍',
+        '留白比塞满重要，让一个主体占画面 60%，剩下交给空气',
+        '道具别买多，藤编 + 玻璃 + 一本旧书就够撑起氛围',
+        '最后一步是「缩小」，手机缩略图里还好看，才是真的好图'
+      ],
+      food: [
+        '光线从侧后方打过来，食物边缘会有一圈亮边，质感直接翻倍',
+        '拍摄前擦一下盘子边缘，这一个动作决定专业度',
+        '近景切开/掰开/拉丝的瞬间，比完整摆盘更有食欲',
+        '桌面留三分之一的空，画面才不闷',
+        '调色别拉饱和度，加一点暖色温 + 提亮阴影就够了'
+      ],
+      fashion: [
+        '全身照站姿别正对镜头，侧身 30 度显瘦最明显',
+        '背景越简单越显质感，纯色墙 + 地面反光就够',
+        '细节图一定要有，袖口、鞋跟、包扣才是决定下单的部分',
+        '同色系叠穿比撞色安全，深浅差两度最耐看',
+        '拍之前把衣服熨一下，褶皱在镜头里会被放大'
+      ],
+      travel: [
+        '早晨 7 点和傍晚 5 点的光最软，人也最少',
+        '别只拍全景，一定要有一张「手部动作」的细节图',
+        '构图用三分法，人放在交叉点上，别站中间',
+        '同一场景拍三张：远景交代环境、中景交代关系、近景交代质感',
+        '临走前回头拍一张，往往是最好的那张'
+      ],
+      default: [
+        `先明确这张图想让人「看到什么」，一个画面只讲一件事`,
+        '自然光永远优先，靠窗侧光是最便宜的柔光箱',
+        '构图留白，主体占 60%，视线方向多留空间',
+        '同组照片统一色温和色调，九宫格才会有整体感',
+        '拍完先看缩略图，缩略图不抓眼就重拍'
+      ]
+    };
+    const key = moodOf(theme);
+    const pts = key ? pick(pointBanks[key], 3) : null;
+
+    let body;
+    let warn;
+    if (pts) {
+      body =
+        `${tm.open}——${topic}这件事，我确实折腾了挺久。\n\n` +
+        `先说结论：${hotFits ? `赶着「${hot}」这波，` : ''}${topic}出不出彩，跟花多少钱关系不大，${rand(['关键是下面这几件小事', '决定权在这几个细节上', '真正拉开差距的是执行细节'])}。\n\n` +
+        `📌 我踩过的坑\n` +
+        `一开始我以为只要东西到位就行，结果全靠运气。后来才发现，每一处细节都是被设计过的。\n\n` +
+        `✅ ${num} 个我自己在用的细节\n` +
+        pts.map((p, i) => `${i + 1}️⃣ ${p}`).join('\n') +
+        `\n\n💡 一句话总结\n${sm.point}这块，按上面的顺序做，效果最稳。\n\n` +
+        `${sm.cta}\n${tm.tail}。`;
+    } else {
+      /* 没有视觉模型时，不编造内容，给一个能直接改的骨架 */
+      const t = topic;
+      body =
+        `${tm.open}——${t}这篇先给你一个骨架，具体细节按你拍的实际情况填。\n\n` +
+        `① 图里最抓眼的那一件\n（写清是什么：颜色、材质、为什么你当时想拍它）\n\n` +
+        `② 我选它的真实原因\n（价格 / 踩过的坑 / 跟别的比过什么，写一条就够了）\n\n` +
+        `③ 一个真实的小缺点\n（这句最容易被相信，也最容易被评论）\n\n` +
+        `④ 谁适合 / 谁别买\n（把人群说窄，反而更准）\n\n` +
+        `${sm.cta}\n${tm.tail}。`;
+      warn = '未接视觉模型：这是骨架稿，不会按图写。设置里填上视觉模型后才是真文案。';
+    }
+
+    const tagBase = ['小红书', '生活记录', '好物分享', '新手友好', '经验分享'];
+    const tags = [
+      hot, hot2, niche, topic, ...pick(tagBase, 3)
+    ].filter(Boolean).map((t) => '#' + String(t).replace(/[#\s]+/g, ''));
+
+    const cover = {
+      headline: topic.length > 9 ? topic.slice(0, 9) : topic,
+      subline: hot ? `跟着「${hot}」抄作业` : `${num} 个细节一次讲清`,
+      shoot: rand([
+        '封面用最强对比的一张，人物/主体占左三分之一，右侧留白放文字',
+        '选一张有「动作感」的图做封面，比静态摆拍点击率高',
+        '封面别用全景，切到细节或半身，缩略图里更抓眼'
+      ])
+    };
+
+    /* ---- 点击率预估分 ---- */
+    let score = 78;
+    if (/\d/.test(titles[0].t)) score += 4;
+    if (hot) score += 5;
+    if (imgCount >= 3) score += 3;
+    if (topic.length <= 12) score += 3;
+    score = Math.min(96, score + Math.floor(Math.random() * 3));
+
+    return {
+      titles: titles.map((x) => ({ title: x.t, why: x.why })),
+      body, tags, cover, score,
+      why: [
+        `标题里带了${/\d/.test(titles[0].t) ? '具体数字' : '具体场景'}，用户能预判「点进去能得到什么」`,
+        hotFits ? `「${hot}」和主题真的相关，挂上去不算硬蹭` : '没有硬挂热点：和主题不相关的热词会让人一眼看出是凑的',
+        pts ? `正文 ${pts.length} 个可执行细节，收藏动机强于纯情绪表达` : '正文是骨架，需要你按实际拍摄情况填细节',
+        '结尾是自然互动，不是「求关注」式收尾'
+      ],
+      warn: warn || '',
+      scene: '',
+      engine: 'local'
+    };
+  }
+
+  /* ================= 大模型 ================= */
+  function llmCfg() {
+    const l = (Store.state.settings.llm || {});
+    return {
+      base: (l.base || '').trim().replace(/\/+$/, ''),
+      model: (l.model || '').trim(),
+      key: (l.key || '').trim(),
+      vision: (l.vision || '').trim()
+    };
+  }
+  const llmLive = () => { const c = llmCfg(); return !!(c.base && c.key && c.model); };
+  const visionLive = () => { const c = llmCfg(); return !!(c.base && c.key && c.vision); };
+
+  const SYS_PROMPT = `你是小红书内容操盘手。硬规则：
+1) 标题 12-20 字，前 6 个字要有钩子（具体物/数字/反差/身份/场景），不要书名号，不要「分享」「推荐」「安利」这类废词；
+2) 严禁这些一眼像 AI 的句式：「我试了N次才敢写」「谁懂啊」「照这个来」「姐妹们」「宝子们」「yyds」「绝了」「闭眼入」「天花板」「狠狠爱」「真的会谢」——一个都不许出现；
+3) 每个标题必须含至少一个只属于这条内容的具体名词，不要能套到任何主题上的通用句；
+4) 正文口语化、**控制在 350 字以内**，第一句 20 字内留住人，中间 3-5 个可执行细节（要有名词、数字、动作），不要空话，结尾一句自然互动，不要「评论区告诉我」；
+5) 标签 6-8 个，# 开头，领域词+长尾词，不要蹭与内容无关的热点；
+6) 封面主标题不超过 9 字。
+只输出 JSON，不要解释文字、不要 markdown 代码块。`;
+
+  const VISION_SYS = `你能看到用户上传的真实照片。写之前必须先看清图：
+scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、旁边有什么道具或背景、手部动作或摆放方式、光线方向、以及「这张图最抓眼的一点」。
+然后所有标题和正文都必须建立在这些真实细节上：
+- 不许写图里没有的东西；
+- 不许用模板句（「我试了N次才敢写」「谁懂啊」「照这个来」「姐妹们」「宝子们」「绝了」「闭眼入」）；
+- 标题里的具体名词要来自 scene，让人一看就知道这一篇在讲什么；
+- 正文像真人发的：先说一个具体场景或细节，再给 3-5 条能照做的经验，最后一句自然的互动。**正文控制在 350 字以内**，宁可短，不要凑字数。
+只输出 JSON，不要解释文字、不要 markdown 代码块。`;
+
+  function userPrompt(opt) {
+    const { theme, style, tone, hots, niche, imgCount } = opt;
+    return `请为下面这次内容生产 5 个标题方案 + 1 篇正文。
+
+主题：${theme}
+内容类型：${style}
+语气人设：${tone}
+账号领域：${niche}
+可用热点：${hots.length ? hots.join('、') : '无'}（只在和主题真的相关时才用，硬蹭会显得假）
+配图数量：${imgCount} 张
+
+严格按此 JSON 结构返回：
+{
+ "titles":[{"title":"标题1","why":"这个标题的点击逻辑，20字内"}],
+ "body":"正文，用\\n分段，可带 emoji 序号",
+ "tags":["#话题1"],
+ "cover":{"headline":"封面主标题≤9字","subline":"封面副标题","shoot":"封面该选哪张图、怎么排版"},
+ "score": 92,
+ "why":["这条内容的数据逻辑1","2","3"]
+}`;
+  }
+
+  function visionPrompt(opt) {
+    const { theme, style, tone, niche, imgCount } = opt;
+    return `我上传了 ${imgCount} 张真实照片（见后）。请先看懂照片，再写内容。
+
+我原本想写的主题：${theme}（如果照片内容对不上，以照片为准，并在 scene 里说明）
+内容类型：${style}
+语气人设：${tone}
+账号领域：${niche}
+
+严格按此 JSON 返回：
+{
+ "scene":"我在这组图里看到的具体东西：主体、材质颜色、道具、动作、光线、最抓眼的一点",
+ "titles":[{"title":"标题","why":"点击逻辑"}],
+ "body":"正文，\\n 分段",
+ "tags":["#话题"],
+ "cover":{"headline":"封面主标题≤9字","subline":"副标题","shoot":"用哪张图、怎么排"},
+ "score": 92,
+ "why":["数据逻辑1","2","3"]
+}`;
+  }
+
+  function normalize(j, local, engine, scene) {
+    return {
+      titles: j.titles.slice(0, 6).map((t) => ({ title: String(t.title || '').trim(), why: t.why || '' })).filter((t) => t.title),
+      body: j.body || local.body,
+      tags: (j.tags || local.tags).map((t) => (String(t).startsWith('#') ? t : '#' + t)),
+      cover: j.cover || local.cover,
+      score: Math.min(99, j.score || local.score),
+      why: j.why || local.why,
+      scene: scene || j.scene || '',
+      engine
+    };
+  }
+
+  async function callVision(opt, images, maxTokens = 1500) {
+    const c = llmCfg();
+    const content = [{ type: 'text', text: visionPrompt(opt) }];
+    images.slice(0, 4).forEach((u) => content.push({ type: 'image_url', image_url: { url: u } }));
+    const res = await fetch(c.base + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.key },
+      body: JSON.stringify({
+        model: c.vision,
+        messages: [
+          { role: 'system', content: VISION_SYS },
+          { role: 'user', content }
+        ],
+        temperature: 0.85,
+        max_tokens: maxTokens
+      })
+    });
+    if (!res.ok) throw new Error(`视觉模型 ${res.status}: ${(await res.text()).slice(0, 160)}`);
+    const json = await res.json();
+    return json.choices?.[0]?.message?.content || '';
+  }
+
+  async function callLLM(messages, maxTokens = 1600) {
+    const c = llmCfg();
+    const res = await fetch(c.base + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.key },
+      body: JSON.stringify({ model: c.model, messages, temperature: 0.9, max_tokens: maxTokens })
+    });
+    if (!res.ok) throw new Error(`模型接口 ${res.status}: ${(await res.text()).slice(0, 140)}`);
+    const json = await res.json();
+    return json.choices?.[0]?.message?.content || '';
+  }
+
+  function extractJSON(text) {
+    let s = String(text).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+    const a = s.indexOf('{'), b = s.lastIndexOf('}');
+    if (a >= 0 && b > a) s = s.slice(a, b + 1);
+    return JSON.parse(s);
+  }
+
+  async function generate(opt) {
+    const local = generateLocal(opt);
+    const imgs = (opt.images || []).filter((u) => typeof u === 'string' && u.startsWith('data:'));
+
+    /* 有图 + 有视觉模型 → 先让它看图，这是唯一能"按图写"的路 */
+    if (imgs.length && visionLive()) {
+      try {
+        const raw = await callVision(opt, imgs);
+        const j = extractJSON(raw);
+        if (!j.titles || !j.titles.length) throw new Error('返回结构不完整');
+        return normalize(j, local, 'vision', j.scene);
+      } catch (e) {
+        console.warn('[ai] 视觉模型失败，回落文本模型', e);
+        local.warn = '看图失败：' + e.message;
+      }
+    }
+
+    if (!llmLive()) return local;
+    try {
+      const raw = await callLLM([
+        { role: 'system', content: SYS_PROMPT },
+        { role: 'user', content: userPrompt(opt) }
+      ]);
+      const j = extractJSON(raw);
+      if (!j.titles || !j.titles.length) throw new Error('返回结构不完整');
+      return normalize(j, local, 'llm');
+    } catch (e) {
+      console.warn('[ai] LLM 失败，回落本地引擎', e);
+      local.warn = e.message;
+      return local;
+    }
+  }
+
+  /* ================= 爆款案例库 ================= */
+  const VIRAL = [
+    { niche: '家居生活', emoji: '🪴', title: '出租屋 12㎡，我把它改成了理想住处', m: '赞 4.2w · 藏 1.8w · 评 2300', why: '改造前后对比 + 具体预算，收藏动机极强', learn: '拍「改造前」的狼狈感，反差越大越抓人；预算数字写在封面' },
+    { niche: '家居生活', emoji: '☕', title: '300 块，把阳台改成咖啡角', m: '赞 3.1w · 藏 1.2w · 评 1800', why: '小成本 + 明确场景，评论区全是「求链接」', learn: '角落场景要用 45 度俯拍，主体占画面 60%，留白给光' },
+    { niche: '美食探店', emoji: '🍰', title: '一个人也要好好吃饭｜沉浸式一人食', m: '赞 2.8w · 藏 9k · 评 1200', why: '情绪价值 + 摆盘审美，适合深夜发布', learn: '侧逆光拍食物边缘亮边，拍摄前擦净盘边' },
+    { niche: '美食探店', emoji: '🥘', title: '巷子里这家店，本地人从不告诉外地人', m: '赞 5.6w · 藏 2.1w · 评 3400', why: '稀缺信息 + 本地视角，天然引发收藏', learn: '门头 + 招牌菜特写 + 一张人挤人的环境图，三张讲完一个故事' },
+    { niche: '穿搭美妆', emoji: '👗', title: '158 小个子｜这 3 个比例公式我用了 2 年', m: '赞 6.8w · 藏 3.4w · 评 2600', why: '身份 + 方法论，长期有效的内容资产', learn: '全身照侧身 30 度，脚踝露出，手机放腰部高度平视' },
+    { niche: '穿搭美妆', emoji: '💄', title: '伪素颜妆，被问了一整天用的什么', m: '赞 4.4w · 藏 1.6w · 评 2100', why: '以结果倒推，用户想知道「怎么做到的」', learn: '妆面细节用 2 倍以上变焦拍，避免广角畸变' },
+    { niche: '旅行出行', emoji: '🏞️', title: '高铁 2 小时，我逃到了一个没人的县城', m: '赞 7.2w · 藏 4.1w · 评 3100', why: '低门槛出行 + 稀缺目的地，转发率特别高', learn: '清晨 7 点的光最软；一定要拍一张手部动作的细节图' },
+    { niche: '摄影摄像', emoji: '📷', title: '原相机直出，参数就这 3 个', m: '赞 5.1w · 藏 2.9w · 评 1700', why: '参数可复制，收藏率常年高于平均 3 倍', learn: '封面直接用成片 + 参数截图拼图，信息密度决定点击' },
+    { niche: '健身运动', emoji: '🧘', title: '久坐 8 年，我把含胸驼背练回来了', m: '赞 3.6w · 藏 2.2w · 评 1400', why: '痛点 + 亲历者身份，可信度高', learn: '对比图用同一角度、同一光位，才有说服力' },
+    { niche: '学习成长', emoji: '📚', title: '这套笔记法，让我从 60 分到 90 分', m: '赞 2.9w · 藏 1.9w · 评 900', why: '结果可量化，属于典型「工具型爆款」', learn: '拍摊开的笔记本 + 笔的斜放，桌面只留 3 个物件' },
+    { niche: '宠物', emoji: '🐱', title: '养猫 3 年，这 5 个坑我替你踩了', m: '赞 4.9w · 藏 2.4w · 评 2900', why: '避坑型内容评论率最高，容易出「自来水」', learn: '低机位平视拍，镜头和猫眼同高，情绪最足' },
+    { niche: '数码测评', emoji: '📱', title: '千元机拍出相机感，我只调了 2 个设置', m: '赞 3.3w · 藏 1.7w · 评 1100', why: '反差结论 + 极低操作成本', learn: '成片和原图左右对照拼图，视觉冲击最强' }
+  ];
+
+  function viralFor(niche, count = 3) {
+    const same = VIRAL.filter((v) => v.niche === niche);
+    const others = VIRAL.filter((v) => v.niche !== niche);
+    return [...pick(same, Math.min(same.length, count)), ...pick(others, Math.max(0, count - same.length))].slice(0, count);
+  }
+
+  /* ================= 拍摄改善建议库 ================= */
+  const SHOOT_TIPS = {
+    '家居生活': [
+      { title: '光线单一是最大问题', level: 'high', p: '室内顶灯直射会在墙面和地板上留硬阴影，画面脏、显廉价。', how: '关掉顶灯，只留窗边侧光；阴天反而更好拍，光比柔。' },
+      { title: '杂物抢走了主体', level: 'high', p: '同一画面里出现超过 3 种颜色或一堆零星小物，用户视线找不到落点。', how: '拍前清空台面，只留 3 个物件：一个主体 + 一个道具 + 一点绿植。' },
+      { title: '俯拍角度太「平」', level: 'mid', p: '全部平铺俯拍会让整组图缺少空间感，看两张就腻。', how: '九宫格里安排 1 张 45 度、1 张平视、1 张特写，节奏就出来了。' },
+      { title: '缺一张「人的痕迹」', level: 'mid', p: '纯静物容易像商品图，缺生活气。', how: '加一只手入镜：掀开窗帘、端起杯子、翻书页，情绪立刻回来。' }
+    ],
+    '美食探店': [
+      { title: '菜品没有「热」的状态', level: 'high', p: '冷掉的菜在镜头里油光发闷，食欲感直接掉一半。', how: '上桌 60 秒内拍完；优先抓拉丝、流心、冒热气这三个瞬间。' },
+      { title: '盘边和桌面没擦', level: 'high', p: '酱汁残留会被镜头放大成「不干净」的暗示。', how: '拍摄前用纸巾擦盘边，桌面杂物移出画框。' },
+      { title: '只用正面平拍', level: 'mid', p: '平拍拍不到食物质感和层次。', how: '主图 45 度俯拍，配一张 2 倍变焦的细节特写。' },
+      { title: '色温偏冷', level: 'low', p: '冷白灯下食物发灰，没有「想咬一口」的冲动。', how: '后期色温 +200~300，阴影提亮 10 个点，别拉饱和度。' }
+    ],
+    '穿搭美妆': [
+      { title: '全身照角度显胖', level: 'high', p: '正对镜头 + 手机低于胸口，会把人拍矮拍宽。', how: '侧身 30 度，手机放在腰部高度平视，脚踝下方留一格空间。' },
+      { title: '背景干扰太多', level: 'high', p: '背景出现晾衣架、电线、路人，会拉低整体质感。', how: '找一面纯色墙，或退后 2 米用 2 倍变焦压缩背景。' },
+      { title: '缺少细节图', level: 'mid', p: '袖口、鞋跟、包扣才是用户决定下单的部分。', how: '每组图至少 1 张面料特写 + 1 张配饰特写。' },
+      { title: '整组色调不统一', level: 'mid', p: '九宫格颜色忽冷忽暖，主页看着像三个人。', how: '同组图套用同一组预设参数，不要逐张手调。' }
+    ],
+    '旅行出行': [
+      { title: '全是「到此一游」全景', level: 'high', p: '只有全景，用户看完不知道值不值得去。', how: '同一场景拍三张：远景交代环境、中景交代关系、近景交代质感。' },
+      { title: '中午强光下拍摄', level: 'mid', p: '正午顶光会在脸上留眼窝阴影，画面反差过大。', how: '改到 7-9 点或 16:30-18:30，光最软人也最少。' },
+      { title: '人物站在画面正中', level: 'mid', p: '居中构图呆板，缺少呼吸感。', how: '三分法把人放交叉点，视线方向多留空间。' },
+      { title: '没有「人的动作」', level: 'low', p: '空镜多了会像旅行社宣传册。', how: '加一张手部动作图：拉行李箱、指路牌、翻地图。' }
+    ],
+    'default': [
+      { title: '主体不够突出', level: 'high', p: '画面里元素太多，用户 1 秒内找不到视觉落点。', how: '一个画面只讲一件事，主体占画面 60%，其余留白。' },
+      { title: '只依赖室内灯光', level: 'high', p: '顶灯硬光让质感和肤色都失真。', how: '优先靠窗自然光，侧光 45 度是最便宜的柔光箱。' },
+      { title: '整组图缺少节奏', level: 'mid', p: '每张都是同一角度同一景别，翻两张就滑走。', how: '按「远景-中景-特写」编排，九宫格才有叙事。' },
+      { title: '拍完没检查缩略图', level: 'mid', p: '缩略图不抓眼，再好的内容也没人点。', how: '拍完立刻看缩略图，糊、暗、杂就重拍。' }
+    ]
+  };
+
+  function shootTips(niche) {
+    return SHOOT_TIPS[niche] || SHOOT_TIPS.default;
+  }
+
+  /* ================= Agent 建议 ================= */
+  function agentTips(state) {
+    const st = state || {};
+    const pref = (st.settings || {}).pref || {};
+    const niche = pref.niche || '家居生活';
+    const pending = (st.notes || []).filter((n) => n.status !== 'published').length;
+    const imgs = (st.images || []).filter((i) => !i.used).length;
+    const hots = hotList(niche);
+    const out = [];
+    if (imgs > 0 && pending === 0) {
+      out.push(`工作台还有 ${imgs} 张素材没成稿，今天可以先配 1 篇「${hots[0].tag}」相关的笔记。`);
+    } else if (pending > 0) {
+      out.push(`有 ${pending} 篇笔记躺在草稿/待发区，建议先按「${pref.time || '12:00 - 13:30 午休'}」发一篇试试水。`);
+    } else {
+      out.push(`今天的热点是「${hots[0].tag}」，先拍 3-5 张能挂这个话题的素材，晚上发。`);
+    }
+    out.push(`本周 ${niche} 赛道里，「${hots[1] ? hots[1].tag : hots[0].tag}」的热度在涨，选题可以往这个方向靠。`);
+    out.push(rand([
+      '封面决定 70% 的点击：主体占 60%，右上角留白放短标题，别超过 9 个字。',
+      '同组图统一色温，主页九宫格看起来才像一个号。',
+      '发布后 2 小时内回前 10 条评论，能明显拉起二次推荐。',
+      '标题前 6 个字要有钩子，用户滑动时只看得见这几个字。'
+    ]));
+    return out;
+  }
+
+  /* ================= 周报 ================= */
+  function buildReport(state, start, end) {
+    const st = state || {};
+    const notes = st.notes || [];
+    const niche = ((st.settings || {}).pref || {}).niche || '家居生活';
+    const inRange = (d) => {
+      if (!d) return false;
+      const t = new Date(d).getTime();
+      return t >= start.getTime() && t <= end.getTime();
+    };
+    const pub = notes.filter((n) => n.status === 'published' && inRange(n.publishedAt));
+    const created = notes.filter((n) => inRange(n.createdAt));
+    const sum = (k) => pub.reduce((a, n) => a + (Number(n.metrics?.[k]) || 0), 0);
+
+    const view = sum('view'), like = sum('like'), fav = sum('fav'), comment = sum('comment'), fans = sum('fans');
+    const hasData = pub.some((n) => Number(n.metrics?.view) > 0);
+
+    const engagement = view ? ((like + fav + comment) / view) * 100 : 0;
+    const favRate = view ? (fav / view) * 100 : 0;
+    const ctr = view && like ? Math.min(19, 4 + (like / Math.max(view, 1)) * 300) : 0;
+
+    /* KPI */
+    const kpis = [
+      { label: '发布篇数', value: pub.length, unit: '篇', delta: pub.length >= 3 ? '+' : '', note: pub.length >= 5 ? '节奏在线' : '建议 4-5 篇/周' },
+      { label: '总曝光', value: view.toLocaleString(), unit: '', delta: '', note: view >= 10000 ? '已破万' : view > 0 ? '已回填' : '未填数据' },
+      { label: '互动率', value: engagement ? engagement.toFixed(1) : '—', unit: '%', note: engagement >= 6 ? '高于均值' : engagement ? '低于 6% 基准' : '未填数据' },
+      { label: '涨粉', value: fans, unit: '人', note: fans >= 30 ? '转化正常' : fans > 0 ? '待提升' : '未填数据' }
+    ];
+
+    /* 数据诊断（分数收敛在 20-96，避免动不动满分） */
+    const clamp = (n) => Math.max(20, Math.min(96, Math.round(n)));
+    const diag = [
+      { label: '封面点击', score: ctr ? clamp(ctr * 4.6) : 45, hint: '封面 + 标题的信息密度' },
+      { label: '内容完读', score: view ? clamp(40 + engagement * 3.2) : 48, hint: '首句钩子与段落节奏' },
+      { label: '互动引导', score: engagement ? clamp(34 + engagement * 3.6) : 40, hint: '结尾提问 / 争议点' },
+      { label: '发布节奏', score: clamp(14 + pub.length * 18), hint: '稳定更新比爆更有效' },
+      { label: '标签精准', score: clamp(pub.length ? 56 + pub.length * 6 : 40), hint: '领域词 + 热点词 + 长尾词' }
+    ];
+
+    /* 改善建议：拍摄类 + 数据类 */
+    const improvement = shootTips(niche).slice(0, 3).map((s) => ({
+      title: s.title, level: s.level, detail: s.p, how: s.how, kind: '拍摄'
+    }));
+
+    const dataTips = [];
+    if (!pub.length) {
+      dataTips.push({ title: '本周没有已发布笔记', level: 'high', detail: '没有数据就没有优化依据，先把成稿发出去，哪怕只有 1 篇。', how: '固定一个发布时段，本周先跑通「拍 → 写 → 发」的完整闭环。', kind: '数据' });
+    } else {
+      if (engagement && engagement < 6) dataTips.push({ title: '互动率低于 6% 基准线', level: 'high', detail: `本周互动率 ${engagement.toFixed(1)}%，说明内容被看到了但没让人想互动。`, how: '正文结尾加一句「你们更想看 A 还是 B」的二选一提问，评论率通常能涨 30%。', kind: '数据' });
+      else if (engagement >= 6) dataTips.push({ title: '互动率健康，可以加频', level: 'low', detail: `本周互动率 ${engagement.toFixed(1)}%，内容质量已经过关。`, how: '在保持质量的前提下，把周更 2 篇提到 4 篇，用同一套模板批量化。', kind: '数据' });
+      if (favRate < 3 && fav > 0) dataTips.push({ title: '收藏率偏低', level: 'mid', detail: '用户看过就走，说明内容「好看但没用」。', how: '每篇至少给 3 条可执行的具体做法（参数、价格、步骤），收藏动机来自「以后要用」。', kind: '数据' });
+      if (pub.length < 3) dataTips.push({ title: '更新频次不足', level: 'mid', detail: `本周只发了 ${pub.length} 篇，账号权重积累会变慢。`, how: '一次拍 3 组素材，拆成 3 篇笔记错峰发布，效率最高。', kind: '数据' });
+    }
+
+    const summary = !pub.length
+      ? `本周还没有发布记录。${niche}赛道现在「${hotList(niche)[0].tag}」正热，建议先把工作台里的素材成稿，本周内至少发出 2 篇。`
+      : `本周共发布 ${pub.length} 篇，累计曝光 ${view.toLocaleString()}，互动率 ${engagement.toFixed(1)}%。${
+          engagement >= 6 ? '内容质量已经在基准线之上，接下来要解决的是「量」。' : '内容被看到了但没被打动，优先修封面和首句。'
+        }拍摄上最该改的是：${improvement[0].title}。`;
+
+    return {
+      niche, kpis, diag, improvement: [...improvement, ...dataTips],
+      viral: viralFor(niche, 3),
+      summary,
+      pubCount: pub.length,
+      createdCount: created.length,
+      hotTop: hotList(niche).slice(0, 3),
+      days: Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+        const n = pub.filter((x) => Store.sameDay(x.publishedAt, d)).length;
+        return { d, n };
+      })
+    };
+  }
+
+  async function augmentReport(report) {
+    if (!llmLive()) return report;
+    try {
+      const txt = await callLLM([
+        { role: 'system', content: '你是小红书数据分析师，说话直接、给结论、不写套话。' },
+        { role: 'user', content: `根据这份周报数据，用 120 字内给出下周最该做的 3 件事，用「1. 2. 3.」编号，不要客套。数据：${JSON.stringify({ kpi: report.kpis, summary: report.summary, niche: report.niche })}` }
+      ], 400);
+      report.aiNote = String(txt).trim();
+    } catch (e) { /* 忽略 */ }
+    return report;
+  }
+
+  async function testLLM() {
+    const txt = await callLLM([{ role: 'user', content: '回复两个字：可用' }], 20);
+    return String(txt).trim().slice(0, 20);
+  }
+
+  return {
+    hotList, generate, generateLocal, buildReport, augmentReport, viralFor, shootTips,
+    agentTips, llmLive, llmCfg, testLLM, VIRAL
+  };
+})();
+
+</script>
+<script>
+/* app.js */
+/* ============================================================
+ *  app.js — 交互层
+ * ============================================================ */
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const S = Store.state;
+
+  const ui = {
+    view: 'workbench',
+    group: 'all',
+    sel: new Set(),
+    studioImgs: [],
+    studioHot: new Set(),
+    style: '种草分享',
+    tone: '真实闺蜜',
+    result: null,
+    titleIdx: 0,
+    noteFilter: 'all',
+    weekOffset: 0,
+    busy: false
+  };
+
+  /* ================= 小工具 ================= */
+  function toast(msg, type = '') {
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.textContent = msg;
+    $('#toastWrap').appendChild(el);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 240); }, 2600);
+  }
+
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (_) {}
+      ta.remove();
+      return true;
+    }
+  }
+
+  async function setImg(el, id) {
+    if (!el || !id) return;
+    const u = await Store.url(id);
+    if (u) el.src = u;
+  }
+
+  const esc = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const niche = () => S.settings.pref.niche;
+
+  /* ================= 小红书草稿箱桥接 ================= */
+  let bridge = false;
+  const pushWaiters = new Map();
+
+  function renderBridgePill() {
+    const pill = $('#bridgePill');
+    const txt = $('#bridgeText');
+    if (!pill || !txt) return;
+    pill.classList.toggle('online', bridge);
+    txt.textContent = bridge ? '草稿箱已连接' : '扩展未连接';
+    pill.title = bridge ? '桥接扩展已就绪，可一键发送到草稿箱' : '点击查看 3 步安装方法';
+  }
+
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || typeof d !== 'object') return;
+
+    if (d.type === 'XHS_BRIDGE_READY') {
+      if (!bridge) {
+        bridge = true;
+        const hint = $('#bridgeHint');
+        if (hint) hint.textContent = '扩展已连接 · 点上面按钮，自动填好标题、正文和配图，你只需在平台点「发布」';
+      }
+      renderBridgePill();
+      return;
+    }
+
+    if (d.type === 'XHS_PUSH_RESULT') {
+      const w = pushWaiters.get(d.id);
+      if (w) { pushWaiters.delete(d.id); w(d); }
+    }
+  });
+
+  async function sendToDraft(n) {
+    if (!bridge) { guideDrawer(); return; }
+    const images = [];
+    for (const id of n.images || []) {
+      const u = await Store.url(id);
+      if (u) images.push(u);
+    }
+    const pid = Store.uid('push');
+    const payload = {
+      id: n.id,
+      title: String(n.title || '').slice(0, 20),
+      body: `${n.body}\n\n${(n.tags || []).join(' ')}`,
+      images
+    };
+
+    toast(images.length ? `正在发送（含 ${images.length} 张配图）…` : '正在发送…');
+
+    const res = await new Promise((resolve) => {
+      const t = setTimeout(() => resolve({ ok: false, msg: '扩展没有响应，请到扩展管理页确认已启用' }), 15000);
+      pushWaiters.set(pid, (d) => { clearTimeout(t); resolve(d); });
+      window.postMessage({ type: 'XHS_PUSH_NOTE', id: pid, payload }, '*');
+    });
+
+    if (res && res.ok) {
+      n.pushedAt = Date.now();
+      if (n.status === 'draft') n.status = 'ready';
+      Store.save();
+      renderNotes();
+      closeDrawer();
+      toast('发布页已打开并开始填写，确认内容后点平台的「发布」', 'ok');
+    } else {
+      toast('发送失败：' + ((res && res.msg) || '未知错误'), 'err');
+    }
+  }
+
+  /* ================= 视图切换 ================= */
+  function switchView(v) {
+    ui.view = v;
+    $$('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === v));
+    $$('.view').forEach((s) => s.classList.toggle('active', s.id === 'view-' + v));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (v === 'notes') renderNotes();
+    if (v === 'report') renderReport();
+    if (v === 'settings') renderSettings();
+    if (v === 'studio') renderStudio();
+  }
+
+  /* ================= 工作台 ================= */
+  const aliveImgs = () => S.images.filter((i) => !i.used);
+
+  function renderWorkbench() {
+    const imgs = aliveImgs();
+    const groups = S.groups;
+
+    // 统计
+    $('#wbStats').innerHTML = `
+      <div class="mini-stat"><b>${imgs.length}</b><span>待用素材</span></div>
+      <div class="mini-stat"><b>${groups.length}</b><span>素材组</span></div>
+      <div class="mini-stat"><b>${S.notes.filter(n => n.status !== 'published').length}</b><span>未发笔记</span></div>`;
+
+    // 分组
+    $('#groupCount').textContent = groups.length;
+    const totalThumb = groups[0] ? imgs.find((i) => i.gid === groups[0].id) : null;
+    let gHtml = `<div class="group-item ${ui.group === 'all' ? 'active' : ''}" data-act="pickGroup" data-gid="all">
+        <div class="g-thumb">${imgs.length}</div>
+        <div class="g-meta"><b>全部素材</b><span>${imgs.length} 张</span></div>
+      </div>`;
+    groups.forEach((g) => {
+      const n = imgs.filter((i) => i.gid === g.id).length;
+      const first = imgs.find((i) => i.gid === g.id);
+      gHtml += `<div class="group-item ${ui.group === g.id ? 'active' : ''}" data-act="pickGroup" data-gid="${g.id}">
+          <div class="g-thumb" data-thumb="${first ? first.id : ''}">${first ? '' : n}</div>
+          <div class="g-meta"><b>${esc(g.name)}</b><span>${n} 张</span></div>
+          <button class="g-del" data-act="delGroup" data-gid="${g.id}" title="删除整组">删除</button>
+        </div>`;
+    });
+    $('#groupList').innerHTML = gHtml;
+    $$('#groupList [data-thumb]').forEach((el) => {
+      const id = el.dataset.thumb;
+      if (!id) return;
+      Store.url(id).then((u) => { if (u) el.style.backgroundImage = `url(${u})`; });
+    });
+
+    // 图片网格
+    const list = ui.group === 'all' ? imgs : imgs.filter((i) => i.gid === ui.group);
+    $('#groupTitle').textContent = ui.group === 'all'
+      ? `全部素材 · ${list.length}`
+      : `${esc((groups.find(g => g.id === ui.group) || {}).name || '')} · ${list.length}`;
+
+    $('#imgEmpty').hidden = list.length > 0;
+    $('#imgGrid').innerHTML = list.map((im) => `
+      <div class="img-cell ${ui.sel.has(im.id) ? 'sel' : ''}" data-act="toggleImg" data-id="${im.id}">
+        <div class="img-check">${ui.sel.has(im.id) ? '✓' : ''}</div>
+        <div class="img-name">${esc(im.name || '')}</div>
+      </div>`).join('');
+    $$('#imgGrid .img-cell').forEach((cell) => {
+      const img = document.createElement('img');
+      setImg(img, cell.dataset.id).then(() => cell.insertBefore(img, cell.firstChild));
+    });
+
+    renderSelectbar();
+    renderHot();
+    renderTips();
+  }
+
+  function renderSelectbar() {
+    const bar = $('#selectbar');
+    const n = ui.sel.size;
+    bar.classList.toggle('hide', n === 0);
+    $('#selCount').textContent = n;
+    const ids = [...ui.sel].slice(0, 8);
+    $('#selThumbs').innerHTML = ids.map((id) => `<img data-src="${id}" alt="">`).join('');
+    $$('#selThumbs img').forEach((im) => setImg(im, im.dataset.src));
+  }
+
+  function renderHot() {
+    const list = AI.hotList(niche());
+    const short = (n) => {
+      const v = Number(String(n).replace(/,/g, ''));
+      return v >= 10000 ? (v / 10000).toFixed(1) + 'w' : String(v);
+    };
+    $('#hotList').innerHTML = list.map((h) => `
+      <div class="hot-item" data-act="pickHotCard" data-tag="${esc(h.tag)}" title="${esc(h.cat)} · 热度 ${h.heat}">
+        <span class="hot-rank">${h.rank}</span>
+        <span class="hot-text">${esc(h.tag)}</span>
+        <span class="hot-heat">${short(h.heat)}</span>
+      </div>`).join('');
+  }
+
+  function renderTips() {
+    $('#agentTips').innerHTML = AI.agentTips(S).map((t) => `<li>${esc(t)}</li>`).join('');
+    const d = new Date();
+    $('#agentTipTime').textContent = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')} · 基于今日热点`;
+  }
+
+  /* ================= 上传 ================= */
+  function loadImage(file) {
+    return new Promise((res, rej) => {
+      const img = new Image();
+      const u = URL.createObjectURL(file);
+      img.onload = () => { URL.revokeObjectURL(u); res(img); };
+      img.onerror = () => { URL.revokeObjectURL(u); rej(new Error('无法读取：' + file.name)); };
+      img.src = u;
+    });
+  }
+
+  function compress(img, max = 1280, q = 0.82) {
+    const w0 = img.naturalWidth || img.width;
+    const h0 = img.naturalHeight || img.height;
+    const scale = Math.min(1, max / Math.max(w0, h0));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w0 * scale));
+    c.height = Math.max(1, Math.round(h0 * scale));
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    return { dataUrl: c.toDataURL('image/jpeg', q), w: c.width, h: c.height };
+  }
+
+  async function addFiles(files) {
+    const arr = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (!arr.length) return;
+    if (ui.busy) return;
+    ui.busy = true;
+    toast(`正在处理 ${arr.length} 张图片…`);
+
+    const gid = Store.uid('g');
+    const d = new Date();
+    const group = {
+      id: gid,
+      name: `第 ${S.groups.length + 1} 组 · ${d.getMonth() + 1}月${d.getDate()}日`,
+      createdAt: Date.now()
+    };
+    S.groups.unshift(group);
+
+    let ok = 0, fail = 0;
+    for (const f of arr) {
+      try {
+        const img = await loadImage(f);
+        const { dataUrl, w, h } = compress(img);
+        const id = Store.uid('img');
+        await Store.putAsset(id, dataUrl);
+        S.images.unshift({
+          id, gid, name: f.name.replace(/\.[^.]+$/, '').slice(0, 22),
+          createdAt: Date.now(), w, h, used: false
+        });
+        ok++;
+      } catch (e) {
+        fail++;
+      }
+    }
+    // 没成功就删掉空组
+    if (!ok) S.groups = S.groups.filter((g) => g.id !== gid);
+
+    ui.group = ok ? gid : ui.group;
+    Store.save();
+    renderWorkbench();
+    toast(fail ? `已上传 ${ok} 张，${fail} 张失败（可能是不支持的格式）` : `已上传 ${ok} 张，自动建立「${group.name}」`, fail ? 'err' : 'ok');
+    ui.busy = false;
+
+    // 首次上传给出下一步引导
+    if (ok && S.notes.length === 0 && !S.settings.onboarded) {
+      setTimeout(() => toast('点选图片 → 用这些图写笔记'), 1400);
+    }
+  }
+
+  async function removeImages(ids) {
+    for (const id of ids) {
+      S.images = S.images.filter((i) => i.id !== id);
+      await Store.idbDel(id);
+    }
+    // 清理空组
+    S.groups = S.groups.filter((g) => S.images.some((i) => i.gid === g.id));
+    if (ui.group !== 'all' && !S.groups.some((g) => g.id === ui.group)) ui.group = 'all';
+    ids.forEach((id) => ui.sel.delete(id));
+    ui.studioImgs = ui.studioImgs.filter((id) => !ids.includes(id));
+    Store.save();
+  }
+
+  /* ================= 文案工坊 ================= */
+  function renderStudio() {
+    // 热点 chips
+    const hots = AI.hotList(niche()).slice(0, 8);
+    $('#chipHot').innerHTML = hots.map((h) =>
+      `<button class="chip ${ui.studioHot.has(h.tag) ? 'active' : ''}" data-act="toggleHot" data-tag="${esc(h.tag)}">${esc(h.tag)}</button>`
+    ).join('');
+
+    // 配图
+    const imgs = ui.studioImgs.map((id) => S.images.find((i) => i.id === id)).filter(Boolean);
+    $('#studioThumbs').innerHTML = imgs.map((im) =>
+      `<div class="st"><img data-src="${im.id}" alt=""><button data-act="removeStudioImg" data-id="${im.id}">×</button></div>`
+    ).join('') + `<button class="add-st" data-act="addFromWb" title="从工作台选图">+</button>`;
+    $$('#studioThumbs img').forEach((im) => setImg(im, im.dataset.src));
+
+    // 模型状态
+    const pill = $('#aiModePill');
+    if (AI.llmLive()) {
+      pill.className = 'ai-mode-pill live';
+      pill.innerHTML = `<b>大模型已接管</b> · ${esc(AI.llmCfg().model)}`;
+    } else {
+      pill.className = 'ai-mode-pill';
+      pill.innerHTML = `<b>内置爆款引擎</b> · 未接大模型`;
+    }
+
+    renderResult();
+  }
+
+  function renderResult() {
+    const box = $('#studioResult');
+    if (ui.busy && ui.generating) {
+      box.innerHTML = `<div class="result-card gen-skeleton"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>`;
+      return;
+    }
+    const r = ui.result;
+    if (!r) {
+      box.innerHTML = `<div class="empty empty-lg">
+        <div class="empty-emoji">✍️</div>
+        <h3>还没有生成结果</h3>
+        <p>填写左边的主题，点「生成笔记」，会同时给出 5 个标题方案 + 正文 + 话题 + 封面文案</p>
+      </div>`;
+      return;
+    }
+
+    const imgs = ui.studioImgs.map((id) => S.images.find((i) => i.id === id)).filter(Boolean);
+
+    box.innerHTML = `
+      <div class="result-card">
+        <div class="result-head">
+          <h3>标题方案 · 点一个采用</h3>
+          <span class="rt">${r.engine === 'vision' ? '看图生成' : r.engine === 'llm' ? '大模型生成' : '内置模板'}</span>
+        </div>
+        ${r.scene ? `<p class="scene-line">模型在图里看到的：${esc(r.scene)}</p>` : ''}
+        ${r.engine === 'local' ? `<p class="scene-line warn">还没接视觉模型 —— 它看不到你的图，所以只能出模板骨架。到「设置 → 大模型接入」填上视觉模型（如 qwen-vl-max），文案才会按图写。</p>` : ''}
+        <div class="title-list">
+          ${r.titles.map((t, i) => `
+            <button class="title-opt ${ui.titleIdx === i ? 'on' : ''}" data-act="pickTitle" data-i="${i}">
+              <span class="num">${i + 1}</span>
+              <span class="tt"><b>${esc(t.title)}</b><span>${esc(t.why || '')}</span></span>
+              <span class="ctr">${[96, 94, 92, 89, 87][i] || 85}分</span>
+            </button>`).join('')}
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-head">
+          <h3>正文</h3>
+          <span class="rt">可直接编辑</span>
+        </div>
+        <div class="body-box" id="bodyBox" contenteditable="true" spellcheck="false">${esc(r.body)}</div>
+        <div class="tag-row" style="margin-top:12px">
+          ${r.tags.map((t) => `<span class="tag-pill">${esc(t)}</span>`).join('')}
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-head"><h3>封面建议</h3><span class="rt">封面决定 70% 点击</span></div>
+        <div class="cover-tips">
+          <div class="cover-cell"><span>封面主标题</span><b>${esc(r.cover.headline)}</b></div>
+          <div class="cover-cell"><span>封面副标题</span><b>${esc(r.cover.subline)}</b></div>
+          <div class="cover-cell" style="grid-column:1/-1"><span>选图与排版</span><b style="font-weight:500;font-size:12.5px;color:var(--ink-2)">${esc(r.cover.shoot)}</b></div>
+        </div>
+        <div class="score-bar">
+          <span class="score-label">爆款潜力</span>
+          <div class="score-track"><div class="score-fill" style="width:${r.score}%"></div></div>
+          <span class="score-num">${r.score}</span>
+        </div>
+        <ul class="why-list" style="margin-top:14px">
+          ${r.why.map((w) => `<li>${esc(w)}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="result-card">
+        <div class="result-head"><h3>下一步</h3><span class="rt">${imgs.length} 张配图</span></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" data-act="saveNote">保存到笔记中心</button>
+          <button class="btn btn-ghost" data-act="copyAll">复制全文</button>
+          <button class="btn btn-ghost" data-act="regen">重新生成</button>
+        </div>
+      </div>`;
+  }
+
+  function collectForm() {
+    const theme = $('#inTheme').value.trim();
+    if (!theme) { toast('先写一下这篇讲什么', 'err'); $('#inTheme').focus(); return null; }
+    return {
+      theme,
+      style: ui.style,
+      tone: ui.tone,
+      hots: [...ui.studioHot],
+      niche: niche(),
+      imgCount: ui.studioImgs.length
+    };
+  }
+
+  async function doGenerate() {
+    const opt = collectForm();
+    if (!opt) return;
+    if (ui.busy) return;
+    ui.busy = true;
+    ui.generating = true;
+    renderResult();
+    try {
+      /* 把选中的图带上——有视觉模型时它会先"看"图再写 */
+      const imgs = [];
+      for (const id of ui.studioImgs.slice(0, 4)) {
+        const u = await Store.url(id);
+        if (u) imgs.push(u);
+      }
+      const r = await AI.generate(Object.assign({}, opt, { images: imgs }));
+      ui.result = r;
+      ui.lastOpt = opt;
+      ui.titleIdx = 0;
+    } catch (e) {
+      toast('生成失败：' + e.message, 'err');
+      ui.result = null;
+    }
+    ui.busy = false;
+    ui.generating = false;
+    renderResult();
+  }
+
+  function noteText(note, withTitle = true) {
+    const body = $('#bodyBox') && ui.result && !note ? $('#bodyBox').innerText : note.body;
+    return (withTitle ? note.title + '\n\n' : '') + body + '\n\n' + (note.tags || []).join(' ');
+  }
+
+  function saveNote() {
+    const r = ui.result;
+    if (!r) return;
+    const bodyEl = $('#bodyBox');
+    const body = bodyEl ? bodyEl.innerText : r.body;
+    const note = {
+      id: Store.uid('n'),
+      title: r.titles[ui.titleIdx].title,
+      titles: r.titles.map((t) => t.title),
+      body,
+      tags: r.tags,
+      cover: r.cover,
+      score: r.score,
+      why: r.why,
+      images: ui.studioImgs.slice(),
+      status: 'ready',
+      createdAt: Date.now(),
+      publishedAt: null,
+      metrics: { view: 0, like: 0, fav: 0, comment: 0, fans: 0 },
+      meta: { style: ui.style, tone: ui.tone, hots: [...ui.studioHot], engine: r.engine }
+    };
+    S.notes.unshift(note);
+    Store.save();
+    ui.result = null;
+    ui.studioImgs = [];
+    ui.sel.clear();
+    $('#inTheme').value = '';
+    ui.studioHot.clear();
+    renderWorkbench();
+    renderNotes();
+    switchView('notes');
+    toast('已存入笔记中心，状态是「待发」', 'ok');
+  }
+
+  /* ================= 笔记中心 ================= */
+  function renderNotes() {
+    const f = ui.noteFilter;
+    const list = S.notes.filter((n) => f === 'all' || n.status === f);
+    $('#noteEmpty').hidden = list.length > 0;
+    $('#noteGrid').innerHTML = list.map((n) => {
+      const pushed = n.pushedAt && n.status !== 'published';
+      const st = n.status === 'published' ? ['st-published', '已发布']
+        : pushed ? ['st-drafted', '已入草稿箱']
+        : n.status === 'ready' ? ['st-ready', '待发'] : ['st-draft', '草稿'];
+      return `<article class="note-card">
+        <div class="note-cover" data-cover="${n.images[0] || ''}">
+          <span class="note-status ${st[0]}">${st[1]}</span>
+          ${n.images.length ? `<span class="note-imgnum">${n.images.length} 图</span>` : '<div class="ph">📷</div>'}
+        </div>
+        <div class="note-body">
+          <h4>${esc(n.title)}</h4>
+          <p class="note-excerpt">${esc(n.body.replace(/\n+/g, ' ').slice(0, 70))}</p>
+          <div class="note-tags">${n.tags.slice(0, 3).map((t) => `<span>${esc(t)}</span>`).join('')}</div>
+          <div class="note-metrics">
+            <span>曝光 <b>${n.metrics.view || 0}</b></span>
+            <span>赞 <b>${n.metrics.like || 0}</b></span>
+            <span>藏 <b>${n.metrics.fav || 0}</b></span>
+          </div>
+        </div>
+        <div class="note-acts">
+          <button class="btn btn-ghost" data-act="copyNote" data-id="${n.id}">复制</button>
+          ${n.status === 'published'
+            ? `<button class="btn btn-ghost" data-act="editNote" data-id="${n.id}">编辑</button>
+               <button class="btn btn-soft" data-act="metricNote" data-id="${n.id}">数据</button>`
+            : pushed
+              ? `<button class="btn btn-ghost" data-act="pushDraft" data-id="${n.id}">重发</button>
+                 <button class="btn btn-primary" data-act="pubNote" data-id="${n.id}">标记已发布</button>`
+              : `<button class="btn btn-ghost" data-act="editNote" data-id="${n.id}">编辑</button>
+                 <button class="btn btn-primary" data-act="pushDraft" data-id="${n.id}">发草稿箱</button>`}
+        </div>
+      </article>`;
+    }).join('');
+
+    $$('#noteGrid [data-cover]').forEach((el) => {
+      const id = el.dataset.cover;
+      if (!id) return;
+      const img = document.createElement('img');
+      setImg(img, id).then(() => el.insertBefore(img, el.querySelector('.note-status')));
+    });
+
+    const pending = S.notes.filter((n) => n.status !== 'published').length;
+    const badge = $('#badge-notes');
+    badge.hidden = pending === 0;
+    badge.textContent = pending;
+  }
+
+  /* ---------- 抽屉 ---------- */
+  function openDrawer(title, bodyHtml, footHtml) {
+    $('#drawerTitle').textContent = title;
+    $('#drawerBody').innerHTML = bodyHtml;
+    $('#drawerFoot').innerHTML = footHtml;
+    $('#drawer').hidden = false;
+    $('#drawerMask').hidden = false;
+  }
+  function closeDrawer() {
+    $('#drawer').hidden = true;
+    $('#drawerMask').hidden = true;
+    $('#drawerBody').innerHTML = '';
+  }
+
+  function noteDrawer(note) {
+    const imgs = note.images.map((id) => S.images.find((i) => i.id === id)).filter(Boolean);
+    openDrawer(note.id ? '编辑笔记' : '新建笔记', `
+      <div class="form-block"><label>标题</label><input id="dTitle" value="${esc(note.title)}"></div>
+      <div class="form-block"><label>正文</label><textarea id="dBody" rows="10">${esc(note.body)}</textarea></div>
+      <div class="form-block"><label>话题标签（空格分隔）</label><input id="dTags" value="${esc((note.tags || []).join(' '))}"></div>
+      <div class="form-block"><label>状态</label>
+        <div class="chips" id="dStatus">
+          <button class="chip ${note.status === 'draft' ? 'active' : ''}" data-v="draft">草稿</button>
+          <button class="chip ${note.status === 'ready' ? 'active' : ''}" data-v="ready">待发</button>
+          <button class="chip ${note.status === 'published' ? 'active' : ''}" data-v="published">已发布</button>
+        </div>
+      </div>
+      <div class="form-block"><label>配图 <span class="hint">${imgs.length} 张</span></label>
+        <div class="studio-thumbs">${imgs.map((im) => `<div class="st"><img data-src="${im.id}" alt=""></div>`).join('') || '<span style="font-size:12px;color:var(--sub)">无配图</span>'}</div>
+      </div>
+      <div class="form-block"><label>数据（发布后回填）</label>
+        <div class="metric-grid">
+          <div class="field"><label>曝光</label><input id="mView" type="number" value="${note.metrics.view || 0}"></div>
+          <div class="field"><label>点赞</label><input id="mLike" type="number" value="${note.metrics.like || 0}"></div>
+          <div class="field"><label>收藏</label><input id="mFav" type="number" value="${note.metrics.fav || 0}"></div>
+          <div class="field"><label>评论</label><input id="mCmt" type="number" value="${note.metrics.comment || 0}"></div>
+          <div class="field"><label>涨粉</label><input id="mFans" type="number" value="${note.metrics.fans || 0}"></div>
+        </div>
+      </div>
+    `, `
+      <button class="btn btn-ghost" data-act="drawerCancel">取消</button>
+      <button class="btn btn-primary" data-act="drawerSaveNote" data-id="${note.id || ''}">保存</button>
+    `);
+    $$('#drawerBody [data-src]').forEach((im) => setImg(im, im.dataset.src));
+    $$('#dStatus .chip').forEach((c) => c.addEventListener('click', () => {
+      $$('#dStatus .chip').forEach((x) => x.classList.remove('active'));
+      c.classList.add('active');
+    }));
+  }
+
+  function saveNoteFromDrawer(id) {
+    const title = $('#dTitle').value.trim();
+    const body = $('#dBody').value;
+    const tags = $('#dTags').value.split(/\s+/).filter(Boolean).map((t) => t.startsWith('#') ? t : '#' + t);
+    const status = ($('#dStatus .chip.active') || {}).dataset ? $('#dStatus .chip.active').dataset.v : 'ready';
+    const metrics = {
+      view: +$('#mView').value || 0,
+      like: +$('#mLike').value || 0,
+      fav: +$('#mFav').value || 0,
+      comment: +$('#mCmt').value || 0,
+      fans: +$('#mFans').value || 0
+    };
+    if (!title) { toast('标题不能为空', 'err'); return; }
+
+    if (id) {
+      const n = S.notes.find((x) => x.id === id);
+      const wasPub = n.status === 'published';
+      Object.assign(n, { title, body, tags, status, metrics });
+      if (status === 'published' && !wasPub) markPublished(n, metrics, false);
+    } else {
+      S.notes.unshift({
+        id: Store.uid('n'), title, body, tags, metrics, titles: [title], status,
+        cover: { headline: title.slice(0, 9), subline: '', shoot: '' },
+        score: 0, why: [], images: [], createdAt: Date.now(),
+        publishedAt: status === 'published' ? Date.now() : null,
+        meta: { style: '手工', tone: '', hots: [], engine: 'manual' }
+      });
+    }
+    Store.save();
+    closeDrawer();
+    renderNotes();
+    renderWorkbench();
+    toast('已保存', 'ok');
+  }
+
+  /* 发布：一键送草稿箱 / 手动兜底 / 标记已发 */
+  function pubDrawer(n) {
+    openDrawer('发布这篇笔记', `
+      <div class="push-block">
+        <button class="btn btn-primary btn-block btn-lg" data-act="pushDraft" data-id="${n.id}">
+          发送到小红书草稿箱
+        </button>
+        <p class="push-hint" id="bridgeHint">${bridge
+          ? '扩展已连接 · 会自动填好标题、正文和 ' + n.images.length + ' 张配图，你只需在平台上点「发布」'
+          : '还没装桥接扩展 · 点这里看 3 步安装方法'}</p>
+      </div>
+
+      <p class="panel-desc" style="margin-top:16px">备用手动路径：先「复制文案 + 打开发布页」，再「下载配图」，在发布页粘贴上传。</p>
+
+      <div class="form-block"><label>标题</label><input value="${esc(n.title)}" readonly style="background:#fafafb"></div>
+      <div class="form-block"><label>发布后数据（可先留空，之后回来补）</label>
+        <div class="metric-grid">
+          <div class="field"><label>曝光</label><input id="mView" type="number" placeholder="0"></div>
+          <div class="field"><label>点赞</label><input id="mLike" type="number" placeholder="0"></div>
+          <div class="field"><label>收藏</label><input id="mFav" type="number" placeholder="0"></div>
+          <div class="field"><label>评论</label><input id="mCmt" type="number" placeholder="0"></div>
+          <div class="field"><label>涨粉</label><input id="mFans" type="number" placeholder="0"></div>
+        </div>
+      </div>
+      <p class="panel-desc">标记已发布后，本篇使用的 ${n.images.length} 张素材会从工作台移出，不会再被重复使用。</p>
+    `, `
+      <button class="btn btn-ghost" data-act="drawerCancel">取消</button>
+      <button class="btn btn-ghost" data-act="dlImages" data-id="${n.id}">下载配图</button>
+      <button class="btn btn-ghost" data-act="copyAndOpen" data-id="${n.id}">复制并打开</button>
+      <button class="btn btn-soft" data-act="confirmPub" data-id="${n.id}">标记已发布</button>
+    `);
+  }
+
+  /* 未装扩展时的安装引导 */
+  function guideDrawer() {
+    const ok = bridge;
+    const steps = ok
+      ? `<div class="warn-box" style="background:#f3fbf6;border-color:#c9ecd7">
+          <b>扩展已连接 ✓</b>
+          <p>当前页面 <code>${esc(location.origin)}</code> 已经被扩展识别，可以正常「发草稿箱」了。</p>
+        </div>`
+      : `<div class="warn-box" style="background:#fff8e8;border-color:#ffe6b3">
+          <b>还没检测到扩展</b>
+          <p>当前页面：<code>${esc(location.origin)}</code></p>
+          <p>如果扩展已经装好，请按顺序试：<b>① 在扩展管理页点一下「重新加载」② 回到本页按 Ctrl+F5 强刷 ③ 再点下面的「重新检测」</b>。</p>
+        </div>`;
+
+    openDrawer('接入小红书草稿箱', `
+      ${steps}
+
+      <p class="panel-desc">小红书没有开放"个人博主发布接口"，所以要用一个浏览器小程序借你已登录的浏览器去填发布页。装一次，以后都是一键。</p>
+
+      <div class="step-list">
+        <div class="step"><b>1</b><div><h5>打开扩展管理页</h5><p>Edge 地址栏输入 <code>edge://extensions</code>；Chrome 输入 <code>chrome://extensions</code></p></div></div>
+        <div class="step"><b>2</b><div><h5>确认扩展是启用状态</h5><p>列表里找到「小红薯 Agent · 草稿箱桥接」，右下角开关要是蓝色/紫色。改过代码就点一下它的「重新加载」图标。</p></div></div>
+        <div class="step"><b>3</b><div><h5>确认「网站访问权限」没被关掉</h5><p>点「详细信息」，往下能看到几个网站权限开关，必须都是<b>开启</b>状态。灰的就是关的，点一下打开。</p></div></div>
+        <div class="step"><b>4</b><div><h5>回到工作台强刷</h5><p>装好扩展之后<b>必须刷新页面</b>，旧页面不会自动生效。刷新后右上角显示绿色「草稿箱已连接」。</p></div></div>
+      </div>
+
+      <div class="warn-box">
+        <b>它会做什么、不会做什么</b>
+        <p>只在你点「发送到草稿箱」时，把这一篇的标题、正文、配图填进创作服务平台的发布页，然后点「存草稿」。<b>它不会点"发布"，也不会读取你的密码、不会动你其他笔记。</b></p>
+      </div>
+
+      <div class="warn-box" style="background:#f8f8fa;border-color:var(--line-2)">
+        <b>如果某个框没填上</b>
+        <p>小红书偶尔改版会导致选择器失效。把那个页面的截图发我，我改一下就能恢复；扩展右上角面板也会显示具体是哪一步没成功。</p>
+      </div>
+    `, `
+      <button class="btn btn-ghost" data-act="pingBridge">重新检测</button>
+      <button class="btn btn-primary" data-act="drawerCancel">我知道了</button>
+    `);
+  }
+
+  function markPublished(n, metrics, doSave = true) {
+    n.status = 'published';
+    n.publishedAt = n.publishedAt || Date.now();
+    n.metrics = Object.assign(n.metrics || {}, metrics || {});
+    // 素材出库
+    const usedIds = n.images || [];
+    usedIds.forEach((id) => {
+      const im = S.images.find((i) => i.id === id);
+      if (im) { im.used = true; im.noteId = n.id; im.usedAt = Date.now(); }
+    });
+    // 从工作台（未用列表）移除
+    S.images = S.images.filter((i) => !usedIds.includes(i.id));
+    S.groups = S.groups.filter((g) => S.images.some((i) => i.gid === g.id));
+    if (doSave) Store.save();
+  }
+
+  /* ================= 周报 ================= */
+  function weekKey(d) {
+    const x = new Date(d);
+    return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+  }
+
+  function renderReport() {
+    const { start, end } = Store.weekRange(ui.weekOffset);
+    const key = weekKey(start);
+    $('#weekLabel').textContent = `${start.getMonth() + 1}.${start.getDate()} - ${end.getMonth() + 1}.${end.getDate()}`;
+    const existing = S.reports.find((r) => r.key === key);
+
+    if (!existing) {
+      const preview = AI.buildReport(S, start, end);
+      $('#reportBody').innerHTML = `
+        <div class="panel" style="text-align:center;padding:60px 24px">
+          <div class="empty-emoji">📊</div>
+          <h3 style="margin:10px 0 6px;font-size:16px">${ui.weekOffset === 0 ? '本周' : '这一周'}还没有生成周报</h3>
+          <p style="color:var(--sub);font-size:13px;max-width:420px;margin:0 auto 18px">
+            点下面按钮，Agent 会统计这周的 ${preview.pubCount} 篇已发布笔记，从拍摄、数据、选题三个角度出诊断。
+          </p>
+          <button class="btn btn-primary" data-act="genReport">生成 ${start.getMonth() + 1}.${start.getDate()} - ${end.getMonth() + 1}.${end.getDate()} 周报</button>
+        </div>`;
+      return;
+    }
+
+    const r = existing.data;
+    const hero = `
+      <div class="report-hero">
+        <div class="rh-top">WEEKLY REVIEW · ${start.getFullYear()}.${String(start.getMonth() + 1).padStart(2, '0')}.${String(start.getDate()).padStart(2, '0')} — ${String(end.getMonth() + 1).padStart(2, '0')}.${String(end.getDate()).padStart(2, '0')} · ${esc(r.niche)}</div>
+        <h3>这周的数据，我给你拆开了</h3>
+        <p>${esc(r.summary)}</p>
+        <div class="report-kpis">
+          ${r.kpis.map((k) => `<div class="kpi"><span>${esc(k.label)}</span><b>${k.value}<i style="font-size:11px;font-weight:400;color:#9a9aa6">${esc(k.unit || '')}</i></b><i style="font-size:10.5px;color:#8a8a96;display:block;margin-top:4px">${esc(k.note || '')}</i></div>`).join('')}
+        </div>
+      </div>`;
+
+    const advice = `
+      <div class="panel">
+        <div class="rc-head"><span class="rc-num">1</span><h4>内容与拍摄改善</h4><span>${r.improvement.filter(x => x.kind === '拍摄').length} 条</span></div>
+        <div class="adv-list">
+          ${r.improvement.map((a) => `
+            <div class="adv">
+              <div class="adv-top">
+                <span class="adv-tag t-${a.level === 'high' ? 'high' : a.level === 'mid' ? 'mid' : 'low'}">${a.level === 'high' ? '优先改' : a.level === 'mid' ? '建议改' : '可优化'}</span>
+                <b>${esc(a.title)}</b>
+                <span class="adv-tag t-low" style="margin-left:auto">${esc(a.kind || '拍摄')}</span>
+              </div>
+              <p>${esc(a.detail)}</p>
+              <div class="how"><b>怎么做：</b>${esc(a.how)}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+
+    const diagColors = ['#FF2442', '#FF6B4A', '#F59E0B', '#3B82F6', '#8B5CF6'];
+    const diagnose = `
+      <div class="panel">
+        <div class="rc-head"><span class="rc-num">2</span><h4>数据诊断</h4><span>本周 ${r.pubCount} 篇</span></div>
+        <div class="week-strip">
+          ${r.days.map((d) => `<div class="day-cell ${d.n ? 'has' : ''}"><b>${d.n || '·'}</b><span>周${'一二三四五六日'[(new Date(d.d).getDay() + 6) % 7]}</span></div>`).join('')}
+        </div>
+        ${r.diag.map((d, i) => `
+          <div class="diag-row">
+            <span class="lb">${esc(d.label)}</span>
+            <div class="diag-track"><div class="diag-fill" style="width:${d.score}%;background:${diagColors[i % diagColors.length]}"></div></div>
+            <span class="diag-val">${d.score} · ${esc(d.hint.split(' ')[0])}</span>
+          </div>`).join('')}
+        ${r.aiNote ? `<div class="adv" style="margin-top:14px;background:#f8fbff;border-color:#dbeafe"><div class="adv-top"><b>AI 下周行动建议</b></div><p style="white-space:pre-wrap">${esc(r.aiNote)}</p></div>` : ''}
+        <p style="font-size:11.5px;color:var(--sub-2);margin-top:12px">诊断分基于你回填的曝光/赞/藏/评数据测算；未填数据的项按同赛道基准估算。</p>
+      </div>`;
+
+    const viral = `
+      <div class="panel rc-full">
+        <div class="rc-head"><span class="rc-num">3</span><h4>本周值得抄的爆款</h4><span>${esc(r.niche)} 赛道</span></div>
+        <div class="viral">
+          ${r.viral.map((v) => `
+            <div class="viral-item">
+              <div class="viral-thumb">${v.emoji}</div>
+              <div class="viral-body">
+                <h5>${esc(v.title)}</h5>
+                <div class="vm">${esc(v.m)}</div>
+                <p>${esc(v.why)}</p>
+                <span class="learn">拍摄要点：${esc(v.learn)}</span>
+              </div>
+            </div>`).join('')}
+        </div>
+        <div style="font-size:11.5px;color:var(--sub-2);margin-top:12px">拆解的是结构与方法，不要照搬内容。</div>
+      </div>`;
+
+    $('#reportBody').innerHTML = `<div style="display:flex;flex-direction:column;gap:16px">
+      ${hero}
+      <div class="report-cols">
+        ${advice}
+        ${diagnose}
+        ${viral}
+      </div>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button class="btn btn-ghost btn-sm" data-act="copyReport">复制周报文字版</button>
+        <button class="btn btn-ghost btn-sm" data-act="regenReport">重新生成</button>
+      </div>
+    </div>`;
+  }
+
+  async function genReport(silent) {
+    const { start, end } = Store.weekRange(ui.weekOffset);
+    const key = weekKey(start);
+    const data = AI.buildReport(S, start, end);
+    const rep = { id: Store.uid('r'), key, start: start.toISOString(), end: end.toISOString(), createdAt: Date.now(), data };
+    S.reports.unshift(rep);
+    Store.save();
+    renderReport();
+    if (!silent) toast('周报已生成', 'ok');
+    // 大模型深度点评（异步补上）
+    if (AI.llmLive()) {
+      await AI.augmentReport(data);
+      Store.save();
+      if (ui.view === 'report') renderReport();
+    }
+    return rep;
+  }
+
+  /* 每周一自动生成上一周周报 */
+  function weeklyAutoCheck() {
+    const { start, end } = Store.weekRange(-1);
+    const key = weekKey(start);
+    if (S.reports.some((r) => r.key === key)) return;
+    const hasAct = S.notes.some((n) => n.publishedAt && new Date(n.publishedAt) >= start && new Date(n.publishedAt) <= end);
+    const everPublished = S.notes.some((n) => n.status === 'published');
+    // 上周完全没有内容、也从没发过笔记 → 不打扰
+    if (!hasAct && !everPublished) return;
+    ui.weekOffset = -1;
+    genReport(true).then(() => {
+      const dot = $('#dot-report');
+      dot.hidden = false;
+      toast('上周周报已生成，点「周报」查看', 'ok');
+    });
+  }
+
+  /* ================= 自动生成草稿 ================= */
+  function agCfg() {
+    return Object.assign({ on: false, time: '20:00', count: 2, seeds: '', lastRun: '' }, S.settings.autogen || {});
+  }
+
+  function todayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function agReadyGroups() {
+    const alive = aliveImgs();
+    return S.groups
+      .map((g) => ({ g, imgs: alive.filter((i) => i.gid === g.id) }))
+      .filter((x) => x.imgs.length > 0);
+  }
+
+  async function runAutogen(count, silent) {
+    const groups = agReadyGroups();
+    if (!groups.length) {
+      if (!silent) toast('工作台还没有可用素材，先上传几张图', 'err');
+      return 0;
+    }
+    const cfg = agCfg();
+    const seeds = String(cfg.seeds || '').split('\n').map((s) => s.trim()).filter(Boolean);
+    const hots = AI.hotList(niche());
+    const styles = ['种草分享', '教程干货', '清单合集', '避坑指南'];
+    const n = Math.max(1, Math.min(5, count));
+    let made = 0;
+
+    for (let i = 0; i < n; i++) {
+      const grp = groups[i % groups.length];
+      const hot = hots[i % hots.length];
+      const seed = seeds.length ? seeds[i % seeds.length] : hot.tag;
+      const theme = seed.indexOf('｜') > -1 ? seed : `${seed}，${hot.tag}`;
+      try {
+        const imgs = [];
+        for (const im of grp.imgs.slice(0, 4)) {
+          const u = await Store.url(im.id);
+          if (u) imgs.push(u);
+        }
+        const r = await AI.generate({
+          theme,
+          style: styles[i % styles.length],
+          tone: '真实闺蜜',
+          hots: [hot.tag],
+          niche: niche(),
+          imgCount: grp.imgs.length,
+          images: imgs
+        });
+        const tk = r.titles[Math.min(i, 2)] || r.titles[0];
+        S.notes.unshift({
+          id: Store.uid('n'),
+          title: tk.title,
+          titles: r.titles.map((t) => t.title),
+          body: r.body,
+          tags: r.tags,
+          cover: r.cover,
+          score: r.score,
+          why: r.why,
+          images: grp.imgs.map((x) => x.id),
+          status: 'ready',
+          createdAt: Date.now(),
+          publishedAt: null,
+          metrics: { view: 0, like: 0, fav: 0, comment: 0, fans: 0 },
+          meta: { style: styles[i % styles.length], tone: '真实闺蜜', hots: [hot.tag], engine: r.engine, autogen: true }
+        });
+        made++;
+      } catch (e) {
+        console.warn('[autogen] failed', e);
+      }
+    }
+
+    if (made) {
+      const c = agCfg();
+      c.lastRun = todayKey();
+      S.settings.autogen = c;
+      Store.save();
+      renderNotes();
+      renderWorkbench();
+      if (!silent) toast(`已自动生成 ${made} 篇，在「笔记中心」待发区`, 'ok');
+    }
+    return made;
+  }
+
+  /* 到点后第一次打开工作台时补齐（任何设备都算） */
+  function maybeAutogen() {
+    const cfg = agCfg();
+    if (!cfg.on) return;
+    const now = new Date();
+    const parts = String(cfg.time || '20:00').split(':');
+    const due = Number(parts[0]) * 60 + Number(parts[1] || 0);
+    if (now.getHours() * 60 + now.getMinutes() < due) return;
+    if (cfg.lastRun === todayKey()) return;
+
+    if (!agReadyGroups().length) {
+      const c = agCfg();
+      c.lastRun = todayKey();
+      S.settings.autogen = c;
+      Store.save({ silent: true });
+      toast('到了自动生成时间，但工作台没有素材，今天已跳过', 'err');
+      return;
+    }
+    runAutogen(cfg.count, false);
+  }
+
+  /* ================= 设置 ================= */
+  const CLOUD_SQL = `-- 在 Supabase 的 SQL Editor 里整段粘贴，然后点 Run
+create table if not exists agent_state (
+  space text primary key,
+  data jsonb not null,
+  updated_at timestamptz default now()
+);
+
+create table if not exists agent_asset (
+  space text not null,
+  id text not null,
+  data text not null,
+  primary key (space, id)
+);
+
+-- 允许匿名读写。数据只靠你起的"空间 ID"隔离，所以空间 ID 别取太好猜的
+alter table agent_state enable row level security;
+alter table agent_asset enable row level security;
+
+drop policy if exists anon_all_state on agent_state;
+drop policy if exists anon_all_asset on agent_asset;
+
+create policy anon_all_state on agent_state for all using (true) with check (true);
+create policy anon_all_asset on agent_asset for all using (true) with check (true);
+
+grant usage on schema public to anon;
+grant select, insert, update, delete on agent_state to anon;
+grant select, insert, update, delete on agent_asset to anon;`;
+
+  function renderSettings() {
+    const l = S.settings.llm || {};
+    const c = S.settings.cloud || {};
+    $('#llmBase').value = l.base || '';
+    $('#llmModel').value = l.model || '';
+    $('#llmVision').value = l.vision || '';
+    $('#llmKey').value = l.key || '';
+    $('#sbUrl').value = c.url || '';
+    $('#sbKey').value = c.key || '';
+    $('#sbSpace').value = c.space || '';
+    $('#prefTime').value = S.settings.pref.time;
+    $('#prefNiche').value = S.settings.pref.niche;
+
+    const ag = agCfg();
+    $('#agTime').value = ag.time;
+    $('#agCount').value = String(ag.count);
+    $('#agSeeds').value = ag.seeds || '';
+    const agTag = $('#agTag');
+    agTag.textContent = ag.on ? '已开启' : '已关闭';
+    agTag.className = 'tag ' + (ag.on ? 'ok' : '');
+
+    const lt = $('#llmTag');
+    lt.textContent = AI.llmLive() ? '已接入' : '未接入';
+    lt.className = 'tag ' + (AI.llmLive() ? 'ok' : '');
+
+    const ct = $('#cloudTag');
+    const ready = Store.Cloud.ready();
+    ct.textContent = ready ? '已配置' : '未连接';
+    ct.className = 'tag ' + (ready ? 'ok' : '');
+
+    $('#dataStats').innerHTML = `
+      <div><span>素材组</span><b>${S.groups.length}</b></div>
+      <div><span>待用素材</span><b>${aliveImgs().length} 张</b></div>
+      <div><span>笔记总数</span><b>${S.notes.length} 篇</b></div>
+      <div><span>周报</span><b>${S.reports.length} 份</b></div>
+      <div><span>已用素材</span><b>${S.notes.reduce((a, n) => a + (n.status === 'published' ? (n.images || []).length : 0), 0)} 张</b></div>`;
+
+    $('#sqlBox').textContent = CLOUD_SQL;
+  }
+
+  function renderSyncPill(state) {
+    const pill = $('#syncPill');
+    const txt = $('#syncText');
+    pill.classList.remove('online', 'busy');
+    if (state === 'busy') { pill.classList.add('busy'); txt.textContent = '同步中'; return; }
+    if (Store.Cloud.ready()) { pill.classList.add('online'); txt.textContent = '云端已连接'; }
+    else { txt.textContent = '本地存储'; }
+  }
+
+  async function doPush(silent) {
+    if (!Store.Cloud.ready()) { toast('先在设置里配置云端数据库', 'err'); return; }
+    renderSyncPill('busy');
+    try {
+      await Store.Cloud.push((m) => { $('#syncText').textContent = m; });
+      renderSyncPill();
+      toast(silent ? '已同步到云端' : '已推送到云端', 'ok');
+    } catch (e) {
+      renderSyncPill();
+      toast('同步失败：' + e.message, 'err');
+    }
+  }
+
+  async function doPull() {
+    if (!Store.Cloud.ready()) { toast('先在设置里配置云端数据库', 'err'); return; }
+    renderSyncPill('busy');
+    try {
+      const ok = await Store.Cloud.pull();
+      renderSyncPill();
+      if (!ok) { toast('云端还没有数据，先推送一次', 'err'); return; }
+      Store.load();
+      location.reload();
+    } catch (e) {
+      renderSyncPill();
+      toast('拉取失败：' + e.message, 'err');
+    }
+  }
+
+  /* ================= 事件绑定 ================= */
+  function bind() {
+    $('#tabs').addEventListener('click', (e) => {
+      const t = e.target.closest('.tab');
+      if (!t) return;
+      if (t.dataset.view === 'report') $('#dot-report').hidden = true;
+      switchView(t.dataset.view);
+    });
+
+    /* --- 上传 --- */
+    const dz = $('#dropzone'), fi = $('#fileInput');
+    dz.addEventListener('click', () => fi.click());
+    fi.addEventListener('change', () => { addFiles(fi.files); fi.value = ''; });
+    ['dragenter', 'dragover'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add('drag'); }));
+    ['dragleave', 'drop'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove('drag'); }));
+    dz.addEventListener('drop', (e) => { if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+    document.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      const files = [];
+      for (const it of items) if (it.type.startsWith('image/')) { const f = it.getAsFile(); if (f) files.push(f); }
+      if (files.length) { e.preventDefault(); addFiles(files); }
+    });
+
+    $('#btnGroupNew').addEventListener('click', () => {
+      const d = new Date();
+      S.groups.unshift({ id: Store.uid('g'), name: `第 ${S.groups.length + 1} 组 · ${d.getMonth() + 1}月${d.getDate()}日`, createdAt: Date.now() });
+      Store.save(); renderWorkbench(); toast('已新建空组');
+    });
+
+    $('#btnSelectAll').addEventListener('click', () => {
+      const imgs = ui.group === 'all' ? aliveImgs() : aliveImgs().filter((i) => i.gid === ui.group);
+      imgs.forEach((i) => ui.sel.add(i.id));
+      renderWorkbench();
+    });
+    $('#btnClearSel').addEventListener('click', () => { ui.sel.clear(); renderWorkbench(); });
+    $('#btnDelSel').addEventListener('click', async () => {
+      if (!ui.sel.size) return toast('先选图片', 'err');
+      if (!confirm(`删除选中的 ${ui.sel.size} 张素材？此操作不可撤销。`)) return;
+      const ids = [...ui.sel];
+      await removeImages(ids);
+      renderWorkbench();
+      toast(`已删除 ${ids.length} 张`);
+    });
+
+    $('#btnToStudio').addEventListener('click', () => {
+      ui.studioImgs = [...ui.sel];
+      switchView('studio');
+    });
+
+    $('#btnRefreshHot').addEventListener('click', () => { renderHot(); renderTips(); toast('已按今日热度重排'); });
+    $('#btnRefreshTip').addEventListener('click', renderTips);
+
+    /* --- 文案工坊 --- */
+    $('#chipStyle').addEventListener('click', (e) => {
+      const c = e.target.closest('.chip'); if (!c) return;
+      $$('#chipStyle .chip').forEach((x) => x.classList.remove('active'));
+      c.classList.add('active'); ui.style = c.dataset.v;
+    });
+    $('#chipTone').addEventListener('click', (e) => {
+      const c = e.target.closest('.chip'); if (!c) return;
+      $$('#chipTone .chip').forEach((x) => x.classList.remove('active'));
+      c.classList.add('active'); ui.tone = c.dataset.v;
+    });
+    $('#btnGenerate').addEventListener('click', doGenerate);
+
+    /* --- 笔记中心筛选 --- */
+    $('#noteFilter').addEventListener('click', (e) => {
+      const b = e.target.closest('.seg-btn'); if (!b) return;
+      $$('#noteFilter .seg-btn').forEach((x) => x.classList.remove('active'));
+      b.classList.add('active'); ui.noteFilter = b.dataset.f; renderNotes();
+    });
+
+    $('#btnQuickNew').addEventListener('click', () => {
+      switchView('notes');
+      noteDrawer({ title: '', body: '', tags: [], status: 'draft', images: [], metrics: {}, cover: {} });
+    });
+
+    $('#bridgePill').addEventListener('click', () => {
+      if (bridge) toast('桥接扩展已连接，笔记中心点「发草稿箱」即可', 'ok');
+      else guideDrawer();
+    });
+
+    /* --- 周报 --- */
+    $('#btnPrevWeek').addEventListener('click', () => { ui.weekOffset--; renderReport(); });
+    $('#btnNextWeek').addEventListener('click', () => {
+      if (ui.weekOffset >= 0) return;
+      ui.weekOffset++; renderReport();
+    });
+    $('#btnGenReport').addEventListener('click', async () => {
+      const btn = $('#btnGenReport');
+      btn.disabled = true; btn.innerHTML = '<span class="spin"></span> 生成中';
+      await genReport();
+      btn.disabled = false; btn.textContent = '生成这份周报';
+    });
+
+    /* --- 设置 --- */
+    $('#btnSaveLLM').addEventListener('click', async () => {
+      S.settings.llm = {
+        base: $('#llmBase').value.trim(),
+        model: $('#llmModel').value.trim(),
+        vision: $('#llmVision').value.trim(),
+        key: $('#llmKey').value.trim()
+      };
+      Store.save();
+      const box = $('#llmTestResult');
+      if (!AI.llmLive()) { box.className = 'test-result err'; box.textContent = 'API 地址、模型名、Key 三项要填'; renderSettings(); return; }
+      box.className = 'test-result'; box.innerHTML = '<span class="spin"></span> 正在测试连接…';
+      try {
+        const r = await AI.testLLM();
+        box.className = 'test-result ok';
+        box.textContent = `连接成功（文字模型）：${r}` + (S.settings.llm.vision ? ` · 视觉模型=${S.settings.llm.vision}` : ' · 没填视觉模型，文案仍会是骨架稿');
+        toast('大模型已接入', 'ok');
+      } catch (e) {
+        box.className = 'test-result err';
+        box.textContent = '连接失败：' + e.message + '（可能是 Key 无效，或该地址不允许浏览器直连 CORS）';
+      }
+      renderSettings();
+      $('#llmTestResult').textContent = box.textContent;
+      $('#llmTestResult').className = box.className;
+    });
+    $('#btnPresetFree').addEventListener('click', () => {
+      $('#llmBase').value = '/api/llm';
+      $('#llmModel').value = 'glm-4.5-flash';
+      $('#llmVision').value = 'glm-4.6v-flash';
+      $('#llmKey').value = 'local-proxy';
+      toast('已填入本机转发配置，点「保存并测试」。要用「启动-免费模型.cmd」打开才有效', 'ok');
+      $('#llmKey').blur();
+    });
+    $('#btnPresetCloud').addEventListener('click', () => {
+      $('#llmBase').value = 'https://yahrwlgxaziopzuemyan.supabase.co/functions/v1/llm-proxy';
+      $('#llmModel').value = 'glm-4.5-flash';
+      $('#llmVision').value = 'glm-4.6v-flash';
+      $('#llmKey').value = '';
+      toast('已填入云端转发配置：把「云端口令.txt」里的口令粘到 Key 栏，再点「保存并测试」', 'ok');
+      $('#llmKey').focus();
+    });
+    $('#btnPresetAli').addEventListener('click', () => {
+      $('#llmBase').value = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+      $('#llmModel').value = 'qwen-plus';
+      $('#llmVision').value = 'qwen-vl-max';
+      toast('已填入阿里云百炼配置，粘上 Key 后点「保存并测试」', 'ok');
+      $('#llmKey').focus();
+    });
+    $('#btnPresetSF').addEventListener('click', () => {
+      $('#llmBase').value = 'https://api.siliconflow.cn/v1';
+      $('#llmModel').value = 'Qwen/Qwen3-8B';
+      $('#llmVision').value = 'Qwen/Qwen2.5-VL-7B-Instruct';
+      toast('已填入硅基流动配置，粘上 Key 后点「保存并测试」', 'ok');
+      $('#llmKey').focus();
+    });
+    $('#btnClearLLM').addEventListener('click', () => {
+      S.settings.llm = { base: '', model: '', vision: '', key: '' };
+      Store.save(); renderSettings(); $('#llmTestResult').textContent = ''; toast('已清除，回到内置引擎');
+    });
+
+    $('#btnSaveCloud').addEventListener('click', async () => {
+      const url = $('#sbUrl').value.trim();
+      const key = $('#sbKey').value.trim();
+      const space = $('#sbSpace').value.trim() || 'xhs-agent';
+      S.settings.cloud = { url, key, space };
+      Store.save({ silent: true });
+
+      const box = $('#cloudResult');
+      if (!url || !key) {
+        box.className = 'test-result err';
+        box.textContent = 'Project URL 和 Anon Key 两个都要填';
+        return;
+      }
+      if (!/^https?:\/\/.+/.test(url)) {
+        box.className = 'test-result err';
+        box.textContent = 'Project URL 要以 https:// 开头（末尾不要带斜杠也行）';
+        return;
+      }
+
+      box.className = 'test-result';
+      box.innerHTML = '<span class="spin"></span> 正在连接…';
+      try {
+        await Store.Cloud.push((m) => { box.textContent = m; });
+        box.className = 'test-result ok';
+        box.textContent = `连接成功，数据已上传到空间「${space}」。手机上填同样的三个值就能看到同一份内容。`;
+        renderSettings();
+        toast('云端已连接', 'ok');
+      } catch (e) {
+        const msg = String((e && e.message) || e);
+        box.className = 'test-result err';
+        if (/42P01|does not exist|PGRST205|Could not find the table|404/i.test(msg)) {
+          box.textContent = '表还没建：先到 SQL Editor 跑一遍第 3 步的建表语句，再回来点一次';
+        } else if (/401|403|Invalid API key|JWT/i.test(msg)) {
+          box.textContent = 'Key 不对：要复制 Publishable key（sb_publishable_…），旧版界面则是 anon 那串；Secret key / service_role 不能用';
+        } else if (/Failed to fetch|NetworkError|load failed/i.test(msg)) {
+          box.textContent = '网络连不上：Supabase 在海外，检查一下网络再试';
+        } else {
+          box.textContent = '连接失败：' + msg;
+        }
+      }
+      renderSyncPill();
+    });
+    $('#btnPull').addEventListener('click', doPull);
+    $('#btnPush').addEventListener('click', () => doPush(false));
+    $('#btnShowSQL').addEventListener('click', () => {
+      const b = $('#sqlBox'); b.hidden = !b.hidden;
+      $('#btnShowSQL').textContent = b.hidden ? '查看内容' : '收起';
+    });
+    $('#btnCopySQL').addEventListener('click', async () => {
+      await copy(CLOUD_SQL);
+      toast('建表 SQL 已复制，去 Supabase 的 SQL Editor 粘贴运行', 'ok');
+    });
+
+    /* --- 自动生成 --- */
+    const readAgForm = () => ({
+      on: agCfg().on,
+      time: $('#agTime').value,
+      count: Number($('#agCount').value) || 2,
+      seeds: $('#agSeeds').value,
+      lastRun: agCfg().lastRun
+    });
+
+    $('#btnAgSave').addEventListener('click', () => {
+      S.settings.autogen = Object.assign(readAgForm(), { on: true });
+      Store.save();
+      renderSettings();
+      const box = $('#agResult');
+      box.className = 'test-result ok';
+      box.textContent = `已开启：每天 ${S.settings.autogen.time} 之后，第一次打开工作台会自动生成 ${S.settings.autogen.count} 篇。`;
+      toast('自动生成已开启', 'ok');
+    });
+
+    $('#btnAgRun').addEventListener('click', async () => {
+      S.settings.autogen = readAgForm();
+      Store.save({ silent: true });
+      const box = $('#agResult');
+      box.className = 'test-result';
+      box.innerHTML = '<span class="spin"></span> 正在生成，可能要几秒…';
+      const n = await runAutogen(Number($('#agCount').value) || 2, true);
+      box.className = 'test-result ' + (n ? 'ok' : 'err');
+      box.textContent = n
+        ? `试跑成功，生成了 ${n} 篇，去「笔记中心」的待发区看`
+        : '试跑失败：工作台没有可用素材，先上传几张图';
+    });
+
+    $('#btnAgOff').addEventListener('click', () => {
+      const cur = agCfg();
+      cur.on = false;
+      S.settings.autogen = cur;
+      Store.save();
+      renderSettings();
+      $('#agResult').className = 'test-result';
+      $('#agResult').textContent = '已关闭自动生成。';
+      toast('已关闭自动生成');
+    });
+
+    $('#prefTime').addEventListener('change', (e) => { S.settings.pref.time = e.target.value; Store.save(); renderTips(); });    $('#prefNiche').addEventListener('change', (e) => {
+      S.settings.pref.niche = e.target.value; Store.save();
+      renderHot(); renderTips(); renderStudio(); renderReport();
+      toast('已切换到「' + e.target.value + '」赛道');
+    });
+
+    /* --- 数据管理 --- */
+    $('#btnExport').addEventListener('click', async () => {
+      const assets = {};
+      for (const im of S.images) { const d = await Store.idbGet(im.id); if (d) assets[im.id] = d; }
+      const blob = new Blob([JSON.stringify({ state: S, assets, exportedAt: new Date().toISOString() }, null, 1)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `xhs-agent-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+      toast('备份已导出', 'ok');
+    });
+    $('#btnImport').addEventListener('click', () => $('#importFile').click());
+    $('#importFile').addEventListener('change', async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      try {
+        const json = JSON.parse(await f.text());
+        if (!json.state) throw new Error('文件格式不对');
+        const llm = S.settings.llm, cloud = S.settings.cloud;
+        S.groups = json.state.groups || [];
+        S.images = json.state.images || [];
+        S.notes = json.state.notes || [];
+        S.reports = json.state.reports || [];
+        S.settings = Object.assign(S.settings, json.state.settings || {});
+        S.settings.llm = llm; S.settings.cloud = cloud;
+        for (const [k, v] of Object.entries(json.assets || {})) await Store.putAsset(k, v);
+        Store.save();
+        toast('导入成功', 'ok');
+        setTimeout(() => location.reload(), 600);
+      } catch (err) { toast('导入失败：' + err.message, 'err'); }
+      e.target.value = '';
+    });
+    $('#btnReset').addEventListener('click', async () => {
+      if (!confirm('清空所有素材、笔记和周报？建议先导出备份。')) return;
+      if (!confirm('再确认一次：数据将无法恢复。')) return;
+      const keys = await Store.idbKeys();
+      for (const k of keys) await Store.idbDel(k);
+      localStorage.removeItem('xhs_agent_state_v1');
+      location.reload();
+    });
+
+    /* --- 抽屉 --- */
+    $('#drawerClose').addEventListener('click', closeDrawer);
+    $('#drawerMask').addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && ui.view === 'studio') doGenerate();
+    });
+
+    /* --- 全局委托 --- */
+    document.addEventListener('click', async (e) => {
+      const el = e.target.closest('[data-act]');
+      if (!el) return;
+      const act = el.dataset.act;
+
+      switch (act) {
+        case 'pickGroup':
+          ui.group = el.dataset.gid; renderWorkbench(); break;
+
+        case 'delGroup': {
+          e.stopPropagation();
+          const g = S.groups.find((x) => x.id === el.dataset.gid);
+          const ids = S.images.filter((i) => i.gid === el.dataset.gid).map((i) => i.id);
+          if (!confirm(`删除「${g.name}」及其 ${ids.length} 张素材？`)) return;
+          await removeImages(ids);
+          renderWorkbench(); toast('已删除该组');
+          break;
+        }
+
+        case 'toggleImg': {
+          const id = el.dataset.id;
+          if (ui.sel.has(id)) ui.sel.delete(id); else ui.sel.add(id);
+          el.classList.toggle('sel');
+          el.querySelector('.img-check').textContent = ui.sel.has(id) ? '✓' : '';
+          renderSelectbar();
+          break;
+        }
+
+        case 'pickHotCard': {
+          ui.studioHot.add(el.dataset.tag);
+          ui.studioImgs = ui.studioImgs.length ? ui.studioImgs : [...ui.sel];
+          switchView('studio');
+          // 预填主题
+          const ta = $('#inTheme');
+          if (!ta.value.trim()) ta.value = `${el.dataset.tag}｜我这边的真实体验`;
+          renderStudio();
+          toast(`已挂靠热点「${el.dataset.tag}」`);
+          break;
+        }
+
+        case 'toggleHot': {
+          const t = el.dataset.tag;
+          if (ui.studioHot.has(t)) ui.studioHot.delete(t); else ui.studioHot.add(t);
+          el.classList.toggle('active'); break;
+        }
+
+        case 'removeStudioImg':
+          ui.studioImgs = ui.studioImgs.filter((x) => x !== el.dataset.id);
+          renderStudio(); break;
+
+        case 'addFromWb':
+          ui.sel.clear(); switchView('workbench');
+          toast('勾选图片后点底部的「用这些图写笔记」'); break;
+
+        case 'pickTitle':
+          ui.titleIdx = +el.dataset.i;
+          $$('.title-opt').forEach((x, i) => x.classList.toggle('on', i === ui.titleIdx));
+          break;
+
+        case 'regen': doGenerate(); break;
+
+        case 'copyAll': {
+          if (!ui.result) return;
+          const body = $('#bodyBox') ? $('#bodyBox').innerText : ui.result.body;
+          const txt = ui.result.titles[ui.titleIdx].title + '\n\n' + body + '\n\n' + ui.result.tags.join(' ');
+          await copy(txt);
+          toast('全文已复制，去小红书粘贴即可', 'ok');
+          break;
+        }
+
+        case 'saveNote': saveNote(); break;
+
+        case 'copyNote': {
+          const n = S.notes.find((x) => x.id === el.dataset.id);
+          if (!n) return;
+          await copy(`${n.title}\n\n${n.body}\n\n${(n.tags || []).join(' ')}`);
+          toast('文案已复制', 'ok');
+          break;
+        }
+
+        case 'editNote': {
+          const n = S.notes.find((x) => x.id === el.dataset.id);
+          if (n) noteDrawer(n);
+          break;
+        }
+
+        case 'metricNote': {
+          const n = S.notes.find((x) => x.id === el.dataset.id);
+          if (n) noteDrawer(n);
+          break;
+        }
+
+        case 'pushDraft': {
+          const n = S.notes.find((x) => x.id === el.dataset.id);
+          if (!n) return;
+          await sendToDraft(n);
+          break;
+        }
+
+        case 'pubNote': {
+          const n = S.notes.find((x) => x.id === el.dataset.id);
+          if (n) pubDrawer(n);
+          break;
+        }
+
+        case 'copyAndOpen': {
+          const n = S.notes.find((x) => x.id === el.dataset.id);
+          if (!n) return;
+          await copy(`${n.title}\n\n${n.body}\n\n${(n.tags || []).join(' ')}`);
+          window.open('https://creator.xiaohongshu.com/publish/publish', '_blank', 'noopener');
+          toast('文案已复制，发布页已打开，粘贴即可', 'ok');
+          break;
+        }
+
+        case 'dlImages': {
+          const n = S.notes.find((x) => x.id === el.dataset.id);
+          if (!n || !n.images.length) { toast('这篇没有配图', 'err'); return; }
+          toast(`开始下载 ${n.images.length} 张配图`);
+          for (let i = 0; i < n.images.length; i++) {
+            const u = await Store.url(n.images[i]);
+            if (!u) continue;
+            const a = document.createElement('a');
+            a.href = u;
+            a.download = `${(n.title || 'note').slice(0, 12)}_${i + 1}.jpg`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            await new Promise((r) => setTimeout(r, 320));
+          }
+          break;
+        }
+
+        case 'confirmPub': {
+          const n = S.notes.find((x) => x.id === el.dataset.id);
+          if (!n) return;
+          const metrics = {
+            view: +($('#mView')?.value || 0), like: +($('#mLike')?.value || 0),
+            fav: +($('#mFav')?.value || 0), comment: +($('#mCmt')?.value || 0),
+            fans: +($('#mFans')?.value || 0)
+          };
+          markPublished(n, metrics);
+          closeDrawer();
+          renderNotes(); renderWorkbench();
+          toast(`已标记发布，${(n.images || []).length} 张素材已从工作台出库`, 'ok');
+          break;
+        }
+
+        case 'pingBridge': {
+          window.postMessage({ type: 'XHS_PING' }, '*');
+          setTimeout(() => {
+            guideDrawer();
+            if (bridge) toast('扩展已连接 ✓', 'ok');
+            else toast('还是没检测到：检查扩展是否启用、网站权限是否打开，然后强刷页面', 'err');
+          }, 800);
+          break;
+        }
+
+        case 'drawerCancel': closeDrawer(); break;
+        case 'drawerSaveNote': saveNoteFromDrawer(el.dataset.id || ''); break;
+
+        case 'genReport':
+          await genReport(); break;
+
+        case 'regenReport': {
+          const { start } = Store.weekRange(ui.weekOffset);
+          const key = weekKey(start);
+          S.reports = S.reports.filter((r) => r.key !== key);
+          await genReport(); break;
+        }
+
+        case 'copyReport': {
+          const { start } = Store.weekRange(ui.weekOffset);
+          const rep = S.reports.find((r) => r.key === weekKey(start));
+          if (!rep) return;
+          const d = rep.data;
+          const txt = `【本周小红书复盘】${d.niche}\n\n${d.summary}\n\n` +
+            `一、内容与拍摄改善\n` + d.improvement.map((a, i) => `${i + 1}. ${a.title}\n   ${a.detail}\n   怎么做：${a.how}`).join('\n') +
+            `\n\n二、数据诊断\n` + d.diag.map((x) => `· ${x.label}：${x.score}分（${x.hint}）`).join('\n') +
+            (d.aiNote ? `\n\nAI 行动建议：\n${d.aiNote}` : '') +
+            `\n\n三、本周爆款拆解\n` + d.viral.map((v, i) => `${i + 1}. ${v.title}（${v.m}）\n   ${v.why}\n   拍摄要点：${v.learn}`).join('\n');
+          await copy(txt);
+          toast('周报文字版已复制', 'ok');
+          break;
+        }
+      }
+    });
+  }
+
+  /* ================= 启动 ================= */
+  async function init() {
+    Store.load();
+    renderWorkbench();
+    renderNotes();
+    renderSettings();
+    renderStudio();
+    bind();
+    renderSyncPill();
+    renderBridgePill();
+    [400, 1500, 3500].forEach((t) => setTimeout(() => window.postMessage({ type: 'XHS_PING' }, '*'), t));
+
+    // 云端智能同步（配置过才走）：按时间戳判断拉还是推，不会覆盖本地数据
+    if (Store.Cloud.ready()) {
+      renderSyncPill('busy');
+      try {
+        const how = await Store.Cloud.sync();
+        if (how === 'pull' || how === 'push') {
+          renderWorkbench(); renderNotes();
+          if (how === 'pull') toast('已从云端同步最新数据', 'ok');
+        }
+      } catch (e) {
+        console.warn('[cloud] sync failed', e);
+      }
+      renderSyncPill();
+    }
+
+    // 保存后同步云端
+    Store.onSaved = () => { if (Store.Cloud.ready()) renderSyncPill('busy'); };
+    Store.onSynced = (r) => { renderSyncPill(); if (r === 'err') toast('云端同步失败，数据已保存在本地', 'err'); };
+
+    // 每周周报
+    setTimeout(weeklyAutoCheck, 1200);
+    setTimeout(maybeAutogen, 3000);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+
+</script>
+</body>
+</html>
