@@ -640,6 +640,31 @@ svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 }
 .scene-line.warn{background:#fff8e8;border-color:#ffe6b3;color:#8a5a00}
 
+/* ============ 实时热点 / 热点角度 / 爆款结构 ============ */
+.link-btn{
+  background:none;border:none;color:var(--brand);font-size:11.5px;font-weight:600;
+  cursor:pointer;padding:0 0 0 8px;text-decoration:underline;
+}
+.hot-actions{margin-top:8px}
+.angle-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.angle-fit{font-size:11.5px;color:var(--sub);margin:0 0 2px}
+.angle-item{
+  text-align:left;background:#fafafb;border:1px solid var(--line);border-radius:10px;
+  padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:.16s;
+}
+.angle-item:hover{border-color:#ffc9d2;background:#fff8f9}
+.angle-item.on{border-color:var(--brand);background:#fff0f2}
+.angle-item b{font-size:12px;color:var(--ink)}
+.angle-item span{font-size:11.5px;color:var(--ink-2);line-height:1.6}
+.angle-item em{font-size:11.5px;color:var(--brand);font-style:normal}
+.hot-heat{font-style:normal;opacity:.55;font-size:10px;margin-left:3px}
+.hook-list{display:flex;flex-direction:column;gap:6px}
+.hook-item{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.65}
+.hook-item b{flex:none;color:var(--brand);font-size:11.5px;background:#fff0f2;border-radius:6px;padding:1px 6px}
+.hook-item span{color:var(--ink-2)}
+.golden-line{margin-top:10px;font-size:12.5px;line-height:1.7;color:var(--ink-2);background:#fff8e8;border:1px solid #ffe6b3;border-radius:10px;padding:8px 11px}
+.golden-line b{color:#8a5a00}
+
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍠</text></svg>" />
 </head>
@@ -799,9 +824,15 @@ svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
             <button class="chip active" data-v="种草分享">种草分享</button>
             <button class="chip" data-v="测评对比">测评对比</button>
             <button class="chip" data-v="教程干货">教程干货</button>
-            <button class="chip" data-v="日常vlog">日常</button>
             <button class="chip" data-v="避坑指南">避坑指南</button>
             <button class="chip" data-v="清单合集">清单合集</button>
+            <button class="chip" data-v="日常vlog">日常vlog</button>
+            <button class="chip" data-v="开箱首发">开箱首发</button>
+            <button class="chip" data-v="搭配公式">搭配公式</button>
+            <button class="chip" data-v="情绪故事">情绪故事</button>
+            <button class="chip" data-v="问答互动">问答互动</button>
+            <button class="chip" data-v="价格攻略">价格攻略</button>
+            <button class="chip" data-v="经验复盘">经验复盘</button>
           </div>
         </div>
 
@@ -812,12 +843,32 @@ svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
             <button class="chip" data-v="专业博主">专业博主</button>
             <button class="chip" data-v="搞笑嘴替">搞笑嘴替</button>
             <button class="chip" data-v="温柔治愈">温柔治愈</button>
+            <button class="chip" data-v="毒舌测评">毒舌测评</button>
+            <button class="chip" data-v="学生党省钱">学生党省钱</button>
+            <button class="chip" data-v="买手店主">买手店主</button>
+            <button class="chip" data-v="文艺情绪">文艺情绪</button>
+            <button class="chip" data-v="干货老师">干货老师</button>
+            <button class="chip" data-v="反差自嘲">反差自嘲</button>
+            <button class="chip" data-v="姐妹吐槽">姐妹吐槽</button>
+            <button class="chip" data-v="冷静分析">冷静分析</button>
           </div>
         </div>
 
         <div class="form-block">
-          <label>挂靠热点 <span class="hint">可多选，来自今日热榜</span></label>
+          <label>挂靠热点
+            <span class="hint" id="hotMeta">正在获取实时热榜…</span>
+            <button class="link-btn" id="btnHotRefresh" type="button">刷新</button>
+          </label>
           <div class="chips chips-hot" id="chipHot"></div>
+          <div class="hot-actions">
+            <button class="btn btn-ghost btn-sm" id="btnHotAngle" type="button">和我的产品怎么搭</button>
+          </div>
+          <div class="angle-list" id="angleList"></div>
+        </div>
+
+        <div class="form-block">
+          <label>参考爆款 <span class="hint">可选，粘一篇你收藏的高赞笔记</span></label>
+          <textarea id="inRef" rows="3" placeholder="把想模仿的那篇标题+正文粘进来。只学结构和节奏，不会照抄句子。"></textarea>
         </div>
 
         <div class="form-block">
@@ -1390,7 +1441,7 @@ const Store = (() => {
 </script>
 <script>
 /* ai.js */
-/* ============================================================
+﻿/* ============================================================
  *  ai.js — 内容智能层
  *  · 热点雷达（内置热点库，按日轮换）
  *  · 本地爆款引擎（离线可用，规则 + 模板矩阵）
@@ -1434,14 +1485,28 @@ const AI = (() => {
     '教程干货': { cta: '步骤都写清楚了，照着做就行，做不出来来骂我。', point: '步骤' },
     '日常vlog': { cta: '今天也是普通但很好的一天。', point: '日常' },
     '避坑指南': { cta: '这条建议收藏，能帮你省下不少冤枉钱。', point: '坑点' },
-    '清单合集': { cta: '先收藏，之后按需慢慢挑。', point: '清单' }
+    '清单合集': { cta: '先收藏，之后按需慢慢挑。', point: '清单' },
+    '开箱首发': { cta: '后面还会补长期使用感受，想看可以蹲一下。', point: '第一眼' },
+    '搭配公式': { cta: '这套公式换个颜色照样能用。', point: '搭配' },
+    '情绪故事': { cta: '写完自己又看了一遍，还是有点上头。', point: '情绪' },
+    '问答互动': { cta: '有同款疑问的可以直接问，我一条条回。', point: '问答' },
+    '价格攻略': { cta: '价格随时会变，以你自己看到的为准。', point: '价格' },
+    '经验复盘': { cta: '踩过的坑都在这了，别再走一遍。', point: '复盘' }
   };
 
   const TONE_META = {
     '真实闺蜜': { open: '跟你说点掏心窝的', voice: '我', tail: '真的，不骗你' },
     '专业博主': { open: '认真复盘一下', voice: '我', tail: '以上都是实测结论' },
     '搞笑嘴替': { open: '本来只想安静当个废物', voice: '我', tail: '笑不活了，但真的有用' },
-    '温柔治愈': { open: '慢慢来，生活会给答案', voice: '我', tail: '愿你也被温柔以待' }
+    '温柔治愈': { open: '慢慢来，生活会给答案', voice: '我', tail: '愿你也被温柔以待' },
+    '毒舌测评': { open: '不好用我第一个骂', voice: '我', tail: '难听话我也说了，自己判断' },
+    '学生党省钱': { open: '预算有限就别乱花', voice: '我', tail: '学生党真的没必要买贵的' },
+    '买手店主': { open: '店里卖了这么多，说点真话', voice: '我', tail: '不忽悠，买不买都行' },
+    '文艺情绪': { open: '有些东西是慢慢才懂的', voice: '我', tail: '愿它陪你一段日子' },
+    '干货老师': { open: '这条建议存下来', voice: '我', tail: '照着做，别自己瞎试' },
+    '反差自嘲': { open: '先自爆一下我的黑历史', voice: '我', tail: '反正丢人也丢过了' },
+    '姐妹吐槽': { open: '我必须吐槽一下', voice: '我', tail: '不说出来我今晚睡不着' },
+    '冷静分析': { open: '不带情绪地说', voice: '我', tail: '数据就摆在这，自己判断' }
   };
 
   /* ================= 工具 ================= */
@@ -1476,6 +1541,114 @@ const AI = (() => {
     while (c.length && out.length < n) out.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]);
     return out;
   };
+
+  /* ================= 实时热榜（浏览器可直连的多源） ================= */
+  const HOT_SOURCES = [
+    { key: 'weibo', name: '微博热搜', url: 'https://60s.viki.moe/v2/weibo' },
+    { key: 'douyin', name: '抖音热点', url: 'https://60s.viki.moe/v2/douyin' },
+    { key: 'toutiao', name: '头条热榜', url: 'https://60s.viki.moe/v2/toutiao' },
+    { key: 'zhihu', name: '知乎热榜', url: 'https://60s.viki.moe/v2/zhihu' }
+  ];
+  const HOT_CACHE_KEY = 'xhs_hot_cache_v2';
+  const HOT_TTL = 15 * 60 * 1000;   // 15 分钟内复用，过点就重新拉
+
+  async function fetchJSON(url, timeout = 9000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeout);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } finally { clearTimeout(timer); }
+  }
+
+  function normHot(source, list) {
+    return (Array.isArray(list) ? list : []).slice(0, 24).map((item, i) => {
+      const tag = String(item.title || item.name || item.word || item.query || '').trim();
+      const link = item.link || item.url || item.mobileUrl || '';
+      return {
+        tag,
+        cat: source.name,
+        source: source.key,
+        heat: Number(item.hot_value || item.hot || item.hotValue || item.hotNum || item.heat || 0),
+        heatDesc: String(item.hot_value_desc || item.hotValueDesc || '').trim(),
+        link,
+        rank: i + 1
+      };
+    }).filter((h) => h.tag && h.tag.length <= 36);
+  }
+
+  /* 返回 { at, list, live } —— live=false 表示这次没拉到线上，用内置库兜底 */
+  async function hotLive(force) {
+    if (!force) {
+      try {
+        const c = JSON.parse(sessionStorage.getItem(HOT_CACHE_KEY) || 'null');
+        if (c && Date.now() - c.at < HOT_TTL && c.list && c.list.length) return c;
+      } catch (e) {}
+    }
+    const out = [];
+    for (const s of HOT_SOURCES) {
+      try {
+        const j = await fetchJSON(s.url);
+        const list = (j && (j.data || (j.data && j.data.list))) || [];
+        out.push(...normHot(s, list));
+      } catch (e) { console.warn('[hot] ' + s.key + ' 拉取失败', e && e.message); }
+      await new Promise((r) => setTimeout(r, 250));   // 多源之间错开，别被接口限流
+    }
+    if (!out.length) return { at: Date.now(), list: hotList('').map((h) => ({ ...h, cat: '内置热点库', source: 'builtin', heatText: h.heat })), live: false };
+
+    const seen = new Set();
+    const list = out
+      .filter((h) => (seen.has(h.tag) ? false : (seen.add(h.tag), true)))
+      .sort((a, b) => b.heat - a.heat)
+      .map((h, i) => ({
+        ...h,
+        rank: i + 1,
+        heatText: h.heat ? (h.heat >= 10000 ? (h.heat / 10000).toFixed(1) + 'w' : String(h.heat)) : (h.heatDesc || '')
+      }));
+    const pack = { at: Date.now(), list, live: true };
+    try { sessionStorage.setItem(HOT_CACHE_KEY, JSON.stringify(pack)); } catch (e) {}
+    return pack;
+  }
+
+  /* ================= 热点 × 产品：怎么搭 ================= */
+  const ANGLE_SYS = `你是小红书选题策划。用户给你一个产品和一条全网热搜，你要判断这条热点能不能真的和产品挂上，并给出可执行的写法。
+
+铁律：
+1) 热点和产品没有真实交集时，要明说"硬蹭意义不大"，并给一个"绕过式"的搭法（用热点的情绪/人群，而不是热点本身）；
+2) 每个角度必须能落到具体内容：写什么、拍什么、开头第一句怎么说；
+3) 不要空话（"结合热点突出产品优势"这种直接不许写）；
+4) 角度要通用——任何品类（饰品、家居、食品、数码、服饰）都能照着改。
+只输出 JSON，不要解释文字。`;
+
+  function localAngles(theme, hot, niche) {
+    const t = String(theme || '这个产品').slice(0, 14);
+    const h = hot && hot.tag ? String(hot.tag).slice(0, 12) : '当下热点';
+    return [
+      { name: '身份代入', idea: `把「${h}」变成某类人的处境，再写这类人怎么用${t}，不硬提热点本身`, hook: `天天${h}的人，最后都靠一件小事救场` },
+      { name: '情绪借势', idea: `借「${h}」的情绪，不硬提热点，只写那种心情下你会想到${t}`, hook: `刷到${h}那条，我突然想起抽屉里那件东西` },
+      { name: '反常识', idea: `先说大家对${t}的常见误解，再拿「${h}」当反例`, hook: `都说${t}要买贵的，直到我看见另一面` },
+      { name: '场景还原', idea: `把「${h}」发生的那几分钟写细，${t}自然出场`, hook: `${h}那天，我包里只带了它` }
+    ];
+  }
+
+  async function hotAngles(opt) {
+    const { theme, hot, niche } = opt;
+    const fallback = localAngles(theme, hot, niche);
+    if (!llmLive()) return { list: fallback, engine: 'local' };
+    try {
+      const raw = await callLLM([
+        { role: 'system', content: ANGLE_SYS },
+        { role: 'user', content: `产品 / 内容主题：${theme}\n账号领域：${niche || '通用'}\n热点：${hot.tag}（来源：${hot.cat}）\n\n请判断这条热点和产品有没有真实交集，然后给 4 个可执行角度。\n\nJSON 结构：\n{"fit":"有交集 / 弱交集 / 无交集，一句话说明","list":[{"name":"角度名（4字内）","idea":"具体怎么写，一句话","hook":"开头第一句，20字内"}]}` }
+      ], 2400);
+      const j = extractJSON(raw);
+      if (!j.list || !j.list.length) throw new Error('返回结构不完整');
+      return { fit: j.fit || '', list: j.list.slice(0, 4), engine: 'llm' };
+    } catch (e) {
+      console.warn('[ai] 热点角度失败，用本地模板', e);
+      return { list: fallback, engine: 'local' };
+    }
+  }
 
   function shortTopic(theme) {
     const raw = String(theme || '').trim();
@@ -1676,37 +1849,64 @@ const AI = (() => {
   const llmLive = () => { const c = llmCfg(); return !!(c.base && c.key && c.model); };
   const visionLive = () => { const c = llmCfg(); return !!(c.base && c.key && c.vision); };
 
-  const SYS_PROMPT = `你是小红书内容操盘手。硬规则：
-1) 标题 12-20 字，前 6 个字要有钩子（具体物/数字/反差/身份/场景），不要书名号，不要「分享」「推荐」「安利」这类废词；
-2) 严禁这些一眼像 AI 的句式：「我试了N次才敢写」「谁懂啊」「照这个来」「姐妹们」「宝子们」「yyds」「绝了」「闭眼入」「天花板」「狠狠爱」「真的会谢」——一个都不许出现；
-3) 每个标题必须含至少一个只属于这条内容的具体名词，不要能套到任何主题上的通用句；
-4) 正文口语化、**控制在 350 字以内**，第一句 20 字内留住人，中间 3-5 个可执行细节（要有名词、数字、动作），不要空话，结尾一句自然互动，不要「评论区告诉我」；
-5) 标签 6-8 个，# 开头，领域词+长尾词，不要蹭与内容无关的热点；
-6) 封面主标题不超过 9 字。
+  const SYS_PROMPT = `你是小红书爆款笔记的仿写操盘手。任务不是"写得漂亮"，是"写得像真爆款"。
+
+【1 选结构】从五种里挑一个最适配的，整篇按它走：
+A 数字清单式：3-5 个编号条目，每条一句抓人 —— 避坑/清单/教程
+B 亲历复盘式：时间线 → 结果 → 代价 —— 测评/经验复盘
+C 反常识打脸式：先说大家以为的 → "直到我发现" → 结论 —— 干货/种草
+D 对比测评式：A 不行、B 行的对照 —— 选购/对比
+E 情绪故事式：一个具体场景 + 身体感受 —— 日常/情绪
+
+【2 开头】第一句 20 字内，必须带一个具体物、数字、时间或场景。禁止"姐妹们/宝子们/谁懂啊/家人们"。
+
+【3 细节密度】正文至少 3 处可验证细节：价格、克重/尺寸、用了多少天、在哪买的、几点、和谁、说了什么原话、身上什么感觉。缺细节就是空话，必须重写。
+
+【4 标题 5 个，句式必须各不相同】分别用：数字式、身份式、反常识式、场景式、结果式；每个 12-20 字，必须含只属于这条内容的具体名词；不要书名号，不要「分享/推荐/安利」。
+
+【5 语气】像真人在评论区说话：短句多、口语、允许自嘲。禁止"综上/值得一提/不得不说/在当今"这种书面腔。结尾不要写"评论区告诉我/评论区聊聊/你们呢"，改成一个具体问题（问某一种情况、某一个选择）。
+
+【禁用词】分享、推荐、安利、姐妹们、宝子们、yyds、绝了、闭眼入、天花板、狠狠爱、真的会谢、我试了N次才敢写。
+
+【6 标签】6-8 个，# 开头，以领域长尾词为主，最多 1 个热点词。
+
+【范例结构（只学结构与节奏，绝对不许抄句子）】
+饰品·数字清单式：标题「戴了 7 条手串，只有 2 条没掉色」→ 开头「去年冬天开始每天换着戴，现在手上只剩两条」→ 中间 3 条编号，每条写时间+现象+价格 → 结尾一句反问。
+家居·反常识式：标题「300 块的咖啡角，比买的柜子好用」→ 开头「本来准备买个五千的柜子，先试了最便宜的方案」→ 中间三个具体改动 + 各花了多少钱 → 结尾「你家那个角落准备怎么弄」。
+
 只输出 JSON，不要解释文字、不要 markdown 代码块。`;
 
   const VISION_SYS = `你能看到用户上传的真实照片。写之前必须先看清图：
-scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、旁边有什么道具或背景、手部动作或摆放方式、光线方向、以及「这张图最抓眼的一点」。
-然后所有标题和正文都必须建立在这些真实细节上：
-- 不许写图里没有的东西；
-- 不许用模板句（「我试了N次才敢写」「谁懂啊」「照这个来」「姐妹们」「宝子们」「绝了」「闭眼入」）；
-- 标题里的具体名词要来自 scene，让人一看就知道这一篇在讲什么；
-- 正文像真人发的：先说一个具体场景或细节，再给 3-5 条能照做的经验，最后一句自然的互动。**正文控制在 350 字以内**，宁可短，不要凑字数。
+scene 里写清——主体（品类/材质/颜色/款式/数量）、旁边道具或背景、手部动作或摆放方式、光线方向、这张图最抓眼的一点。
+所有标题和正文都必须建立在这些真实细节上：不许写图里没有的东西。
+
+写法与结构要求：
+1) 先从「数字清单 / 亲历复盘 / 反常识打脸 / 对比测评 / 情绪故事」里选一个结构，整篇按它走；
+2) 第一句 20 字内，带具体物、数字或场景；
+3) 正文至少 3 处可验证细节：图里看得到的材质、颜色、数量，加上你补充的价格/天数/场景（补充的要写成"大概""估计"）；
+4) 短句、口语、允许自嘲；禁止"姐妹们/宝子们/谁懂啊/绝了/闭眼入/天花板/狠狠爱"；
+5) 正文 350 字以内，宁可短，不要凑字数。
+
 只输出 JSON，不要解释文字、不要 markdown 代码块。`;
 
   function userPrompt(opt) {
-    const { theme, style, tone, hots, niche, imgCount } = opt;
+    const { theme, style, tone, hots, niche, imgCount, angle, refText } = opt;
     return `请为下面这次内容生产 5 个标题方案 + 1 篇正文。
 
 主题：${theme}
-内容类型：${style}
+内容类型：${style}（按这个类型对应的爆款结构写）
 语气人设：${tone}
 账号领域：${niche}
-可用热点：${hots.length ? hots.join('、') : '无'}（只在和主题真的相关时才用，硬蹭会显得假）
+已选热点：${hots.length ? hots.join('、') : '无'}（有交集才用；没交集就只借热点的情绪和人群，不要硬塞热词）
+${angle ? `已选切入角度：${angle}` : ''}
+${refText ? `参考爆款（重点模仿它的结构与节奏，绝对不许抄句子）：\n${refText}` : ''}
 配图数量：${imgCount} 张
 
 严格按此 JSON 结构返回：
 {
+ "structure":"用了哪个结构（数字清单/亲历复盘/反常识打脸/对比测评/情绪故事）",
+ "hooks":["开头第一句备选1","2","3"],
+ "golden":"全篇最有可能被截图的一句，20字内",
  "titles":[{"title":"标题1","why":"这个标题的点击逻辑，20字内"}],
  "body":"正文，用\\n分段，可带 emoji 序号",
  "tags":["#话题1"],
@@ -1717,17 +1917,23 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
   }
 
   function visionPrompt(opt) {
-    const { theme, style, tone, niche, imgCount } = opt;
+    const { theme, style, tone, niche, imgCount, hots, angle, refText } = opt;
     return `我上传了 ${imgCount} 张真实照片（见后）。请先看懂照片，再写内容。
 
 我原本想写的主题：${theme}（如果照片内容对不上，以照片为准，并在 scene 里说明）
 内容类型：${style}
 语气人设：${tone}
 账号领域：${niche}
+已选热点：${(hots && hots.length) ? hots.join('、') : '无'}
+${angle ? `已选切入角度：${angle}` : ''}
+${refText ? `参考爆款（模仿结构与节奏，不许抄句子）：\n${refText}` : ''}
 
 严格按此 JSON 返回：
 {
  "scene":"我在这组图里看到的具体东西：主体、材质颜色、道具、动作、光线、最抓眼的一点",
+ "structure":"用了哪个结构",
+ "hooks":["开头第一句备选1","2","3"],
+ "golden":"全篇最可能被截图的一句，20字内",
  "titles":[{"title":"标题","why":"点击逻辑"}],
  "body":"正文，\\n 分段",
  "tags":["#话题"],
@@ -1746,11 +1952,14 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
       score: Math.min(99, j.score || local.score),
       why: j.why || local.why,
       scene: scene || j.scene || '',
+      structure: j.structure || '',
+      hooks: (j.hooks || []).map((h) => String(h || '').trim()).filter(Boolean).slice(0, 3),
+      golden: String(j.golden || '').trim(),
       engine
     };
   }
 
-  async function callVision(opt, images, maxTokens = 1500) {
+  async function callVision(opt, images, maxTokens = 2400) {
     const c = llmCfg();
     const content = [{ type: 'text', text: visionPrompt(opt) }];
     images.slice(0, 4).forEach((u) => content.push({ type: 'image_url', image_url: { url: u } }));
@@ -1772,16 +1981,24 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
     return json.choices?.[0]?.message?.content || '';
   }
 
-  async function callLLM(messages, maxTokens = 1600) {
+  async function callLLM(messages, maxTokens = 1800) {
     const c = llmCfg();
-    const res = await fetch(c.base + '/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.key },
-      body: JSON.stringify({ model: c.model, messages, temperature: 0.9, max_tokens: maxTokens })
-    });
-    if (!res.ok) throw new Error(`模型接口 ${res.status}: ${(await res.text()).slice(0, 140)}`);
-    const json = await res.json();
-    return json.choices?.[0]?.message?.content || '';
+    const send = async (tokens, temp) => {
+      const res = await fetch(c.base + '/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.key },
+        body: JSON.stringify({ model: c.model, messages, temperature: temp, max_tokens: tokens })
+      });
+      if (!res.ok) throw new Error(`模型接口 ${res.status}: ${(await res.text()).slice(0, 140)}`);
+      const json = await res.json();
+      return json.choices?.[0]?.message?.content || '';
+    };
+    let out = await send(maxTokens, 0.9);
+    if (!String(out).trim()) {
+      /* 思考型模型可能把预算全烧在 reasoning 上，加倍预算再试一次 */
+      out = await send(Math.min(maxTokens * 2 + 600, 4000), 0.7);
+    }
+    return out;
   }
 
   function extractJSON(text) {
@@ -1791,6 +2008,23 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
     return JSON.parse(s);
   }
 
+  const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /* 免费模型排队时会被网关掐断（429/504），软失败就等一会儿再来一次 */
+  async function withRetry(fn, times = 2) {
+    let last = null;
+    for (let i = 0; i <= times; i++) {
+      try { return await fn(); } catch (e) {
+        last = e;
+        const msg = String((e && e.message) || '');
+        const soft = /(429|504|排队|超时|timeout|aborted|abort)/i.test(msg);
+        if (!soft || i === times) break;
+        await sleepMs(5000 + i * 5000);
+      }
+    }
+    throw last;
+  }
+
   async function generate(opt) {
     const local = generateLocal(opt);
     const imgs = (opt.images || []).filter((u) => typeof u === 'string' && u.startsWith('data:'));
@@ -1798,7 +2032,7 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
     /* 有图 + 有视觉模型 → 先让它看图，这是唯一能"按图写"的路 */
     if (imgs.length && visionLive()) {
       try {
-        const raw = await callVision(opt, imgs);
+        const raw = await withRetry(() => callVision(opt, imgs));
         const j = extractJSON(raw);
         if (!j.titles || !j.titles.length) throw new Error('返回结构不完整');
         return normalize(j, local, 'vision', j.scene);
@@ -1810,10 +2044,10 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
 
     if (!llmLive()) return local;
     try {
-      const raw = await callLLM([
+      const raw = await withRetry(() => callLLM([
         { role: 'system', content: SYS_PROMPT },
         { role: 'user', content: userPrompt(opt) }
-      ]);
+      ]));
       const j = extractJSON(raw);
       if (!j.titles || !j.titles.length) throw new Error('返回结构不完整');
       return normalize(j, local, 'llm');
@@ -1991,7 +2225,7 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
       const txt = await callLLM([
         { role: 'system', content: '你是小红书数据分析师，说话直接、给结论、不写套话。' },
         { role: 'user', content: `根据这份周报数据，用 120 字内给出下周最该做的 3 件事，用「1. 2. 3.」编号，不要客套。数据：${JSON.stringify({ kpi: report.kpis, summary: report.summary, niche: report.niche })}` }
-      ], 400);
+      ], 1400);
       report.aiNote = String(txt).trim();
     } catch (e) { /* 忽略 */ }
     return report;
@@ -2003,7 +2237,7 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
   }
 
   return {
-    hotList, generate, generateLocal, buildReport, augmentReport, viralFor, shootTips,
+    hotList, hotLive, hotAngles, generate, generateLocal, buildReport, augmentReport, viralFor, shootTips,
     agentTips, llmLive, llmCfg, testLLM, VIRAL
   };
 })();
@@ -2025,6 +2259,8 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
     sel: new Set(),
     studioImgs: [],
     studioHot: new Set(),
+    angles: null,
+    angle: '',
     style: '种草分享',
     tone: '真实闺蜜',
     result: null,
@@ -2324,12 +2560,64 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
   }
 
   /* ================= 文案工坊 ================= */
-  function renderStudio() {
-    // 热点 chips
-    const hots = AI.hotList(niche()).slice(0, 8);
-    $('#chipHot').innerHTML = hots.map((h) =>
-      `<button class="chip ${ui.studioHot.has(h.tag) ? 'active' : ''}" data-act="toggleHot" data-tag="${esc(h.tag)}">${esc(h.tag)}</button>`
+  let hotPack = { at: 0, list: [], live: false };
+
+  function renderHotChips() {
+    const box = $('#chipHot');
+    if (!box) return;
+    /* 多来源混排：每个来源最多 5 条，凑满 12 条，避免一整屏都是同一个榜 */
+    const picked = [];
+    const perCat = {};
+    (hotPack.list || []).forEach((h) => {
+      const c = h.cat || '热榜';
+      if ((perCat[c] || 0) >= 5) return;
+      perCat[c] = (perCat[c] || 0) + 1;
+      if (picked.length < 12) picked.push(h);
+    });
+    box.innerHTML = picked.map((h) => {
+      const on = ui.studioHot.has(h.tag);
+      const tip = `${h.cat} · 第 ${h.rank} 名${h.heatText ? ' · 热度 ' + h.heatText : ''}`;
+      return `<button class="chip ${on ? 'active' : ''}" data-act="toggleHot" data-tag="${esc(h.tag)}" title="${esc(tip)}">${esc(h.tag)}${h.heatText ? `<i class="hot-heat">${esc(h.heatText)}</i>` : ''}</button>`;
+    }).join('') || '<span class="hint">没拉到热榜，可点右上「刷新」重试</span>';
+
+    const meta = $('#hotMeta');
+    if (meta) {
+      const d = new Date(hotPack.at || Date.now());
+      const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      meta.textContent = (hotPack.live ? '实时 · ' : '内置库 · ') + hm + ' 更新';
+    }
+  }
+
+  async function loadHots(force) {
+    const box = $('#chipHot');
+    if (box && !hotPack.list.length) box.innerHTML = '<span class="hint">正在获取实时热榜…</span>';
+    try {
+      hotPack = await AI.hotLive(!!force);
+    } catch (e) {
+      hotPack = { at: Date.now(), list: AI.hotList(niche()), live: false };
+    }
+    renderHotChips();
+  }
+
+  function renderAngles() {
+    const box = $('#angleList');
+    if (!box) return;
+    if (!ui.angles || !ui.angles.list) { box.innerHTML = ''; return; }
+    const fit = ui.angles.fit ? `<p class="angle-fit">${esc(ui.angles.fit)}</p>` : '';
+    box.innerHTML = fit + ui.angles.list.map((a, i) =>
+      `<button class="angle-item ${ui.angle === a.name ? 'on' : ''}" data-act="useAngle" data-i="${i}">
+        <b>${esc(a.name || ('角度' + (i + 1)))}</b>
+        <span>${esc(a.idea || '')}</span>
+        ${a.hook ? `<em>「${esc(a.hook)}」</em>` : ''}
+      </button>`
     ).join('');
+  }
+
+  function renderStudio() {
+    // 热点 chips（实时）
+    renderHotChips();
+    if (!hotPack.list.length) loadHots(false);
+    renderAngles();
 
     // 配图
     const imgs = ui.studioImgs.map((id) => S.images.find((i) => i.id === id)).filter(Boolean);
@@ -2387,6 +2675,15 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
         </div>
       </div>
 
+      ${(r.structure || (r.hooks && r.hooks.length) || r.golden) ? `
+      <div class="result-card">
+        <div class="result-head"><h3>结构与开头</h3><span class="rt">${esc(r.structure || '')}</span></div>
+        ${(r.hooks && r.hooks.length) ? `<div class="hook-list">
+          ${r.hooks.map((h, i) => `<div class="hook-item"><b>开头${i + 1}</b><span>${esc(h)}</span></div>`).join('')}
+        </div>` : ''}
+        ${r.golden ? `<p class="golden-line"><b>可截图的一句：</b>「${esc(r.golden)}」</p>` : ''}
+      </div>` : ''}
+
       <div class="result-card">
         <div class="result-head">
           <h3>正文</h3>
@@ -2428,11 +2725,14 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
   function collectForm() {
     const theme = $('#inTheme').value.trim();
     if (!theme) { toast('先写一下这篇讲什么', 'err'); $('#inTheme').focus(); return null; }
+    const refBox = $('#inRef');
     return {
       theme,
       style: ui.style,
       tone: ui.tone,
       hots: [...ui.studioHot],
+      angle: ui.angle,
+      refText: refBox ? refBox.value.trim().slice(0, 900) : '',
       niche: niche(),
       imgCount: ui.studioImgs.length
     };
@@ -3147,6 +3447,29 @@ grant select, insert, update, delete on agent_asset to anon;`;
     });
     $('#btnGenerate').addEventListener('click', doGenerate);
 
+    $('#btnHotRefresh').addEventListener('click', async () => {
+      await loadHots(true);
+      toast(hotPack.live ? `已拉取实时热榜 ${hotPack.list.length} 条` : '没连上热榜，已用内置库', hotPack.live ? 'ok' : 'err');
+    });
+
+    $('#btnHotAngle').addEventListener('click', async () => {
+      const theme = $('#inTheme').value.trim();
+      if (!theme) { toast('先写这篇讲什么，才知道热点怎么搭', 'err'); $('#inTheme').focus(); return; }
+      if (!hotPack.list.length) await loadHots(false);
+      const picked = [...ui.studioHot][0];
+      const hot = (picked && hotPack.list.find((h) => h.tag === picked)) || hotPack.list[0];
+      if (!hot) { toast('热榜为空，先点刷新', 'err'); return; }
+      const btn = $('#btnHotAngle');
+      btn.disabled = true; btn.textContent = '正在判断…';
+      try {
+        ui.angles = await AI.hotAngles({ theme, hot, niche: niche() });
+        ui.angle = '';
+        renderAngles();
+      } finally {
+        btn.disabled = false; btn.textContent = '和我的产品怎么搭';
+      }
+    });
+
     /* --- 笔记中心筛选 --- */
     $('#noteFilter').addEventListener('click', (e) => {
       const b = e.target.closest('.seg-btn'); if (!b) return;
@@ -3221,7 +3544,7 @@ grant select, insert, update, delete on agent_asset to anon;`;
     });
     $('#btnPresetCloud').addEventListener('click', () => {
       $('#llmBase').value = 'https://yahrwlgxaziopzuemyan.supabase.co/functions/v1/llm-proxy';
-      $('#llmModel').value = 'glm-4.5-flash';
+      $('#llmModel').value = 'glm-4-flash-250414';
       $('#llmVision').value = 'glm-4.6v-flash';
       $('#llmKey').value = '';
       toast('已填入云端转发配置：把「云端口令.txt」里的口令粘到 Key 栏，再点「保存并测试」', 'ok');
@@ -3441,7 +3764,18 @@ grant select, insert, update, delete on agent_asset to anon;`;
         case 'toggleHot': {
           const t = el.dataset.tag;
           if (ui.studioHot.has(t)) ui.studioHot.delete(t); else ui.studioHot.add(t);
-          el.classList.toggle('active'); break;
+          el.classList.toggle('active');
+          ui.angles = null; ui.angle = ''; renderAngles();
+          break;
+        }
+
+        case 'useAngle': {
+          const a = (ui.angles && ui.angles.list) ? ui.angles.list[Number(el.dataset.i)] : null;
+          if (!a) break;
+          ui.angle = `${a.name}｜${a.idea || ''}`;
+          renderAngles();
+          toast(`已选角度：${a.name}，生成时会按这个思路写`);
+          break;
         }
 
         case 'removeStudioImg':
