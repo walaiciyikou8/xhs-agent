@@ -49,9 +49,10 @@ svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 .brand-text h1{font-size:15px;font-weight:700;letter-spacing:-.2px}
 .brand-text p{font-size:11px;color:var(--sub);line-height:1.3}
 
-.tabs{display:flex;gap:4px;flex:1}
+.tabs{display:flex;gap:4px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
 .tab{
-  position:relative;display:flex;align-items:center;gap:6px;
+  position:relative;display:flex;align-items:center;gap:6px;flex:0 0 auto;white-space:nowrap;
   padding:8px 14px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--sub);
   transition:.18s;
 }
@@ -65,6 +66,7 @@ svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 .dot-new{width:6px;height:6px;border-radius:50%;background:var(--brand);position:absolute;top:7px;right:7px}
 
 .top-actions{display:flex;align-items:center;gap:10px;flex:none}
+.only-mobile{display:none}
 .sync-pill{
   display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);
   padding:5px 10px;border-radius:20px;background:#f5f5f7;
@@ -597,10 +599,21 @@ svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
   .report-cols{grid-template-columns:1fr}
   .settings-grid{grid-template-columns:1fr}
 }
+@media (max-width:900px){
+  /* 手机上顶栏一定换行，导航单独占一行并可横向滑动，保证「设置」总能点到 */
+  .topbar-inner{height:auto;padding:10px 14px;flex-wrap:wrap;gap:8px}
+  .brand-text p{display:none}
+  .tabs{order:3;flex:0 0 100%;width:100%;overflow-x:auto;gap:2px;padding-bottom:2px}
+  .tab{padding:7px 12px;font-size:12.5px}
+  .top-actions{margin-left:auto;gap:6px;flex-wrap:wrap}
+  .only-mobile{display:inline-flex !important}
+  .setup-steps{grid-template-columns:1fr}
+  .cloud-form{max-width:none}
+}
 @media (max-width:760px){
   .topbar-inner{height:auto;padding:10px 14px;flex-wrap:wrap;gap:10px}
   .brand-text p{display:none}
-  .tabs{order:3;width:100%;overflow-x:auto;gap:2px;padding-bottom:2px}
+  .tabs{order:3;flex:0 0 100%;width:100%;overflow-x:auto;gap:2px;padding-bottom:2px}
   .tab{padding:7px 11px;font-size:12.5px}
   .top-actions{margin-left:auto}
   .app{padding:16px 14px 30px}
@@ -672,6 +685,9 @@ svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
       </div>
       <button class="btn btn-ghost btn-sm" id="btnQuickNew">
         <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建笔记
+      </button>
+      <button class="btn btn-ghost btn-sm only-mobile" id="btnMobileSettings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10l2 2M19 5l-2 2M7 17l-2 2"/></svg>设置
       </button>
     </div>
   </div>
@@ -2360,7 +2376,7 @@ scene 里要写——主体是什么（品类/材质/颜色/款式/数量）、�
           <span class="rt">${r.engine === 'vision' ? '看图生成' : r.engine === 'llm' ? '大模型生成' : '内置模板'}</span>
         </div>
         ${r.scene ? `<p class="scene-line">模型在图里看到的：${esc(r.scene)}</p>` : ''}
-        ${r.engine === 'local' ? `<p class="scene-line warn">还没接视觉模型 —— 它看不到你的图，所以只能出模板骨架。到「设置 → 大模型接入」填上视觉模型（如 qwen-vl-max），文案才会按图写。</p>` : ''}
+        ${r.engine === 'local' ? `<p class="scene-line warn">还没接视觉模型 —— 它看不到你的图，所以只能出模板骨架。手机/网页版请到「设置 → 大模型接入」，点「智谱免费 · 云端转发」并把口令粘到 Key 栏；本机转发按钮在手机上无效。</p>` : ''}
         <div class="title-list">
           ${r.titles.map((t, i) => `
             <button class="title-opt ${ui.titleIdx === i ? 'on' : ''}" data-act="pickTitle" data-i="${i}">
@@ -3143,6 +3159,10 @@ grant select, insert, update, delete on agent_asset to anon;`;
       noteDrawer({ title: '', body: '', tags: [], status: 'draft', images: [], metrics: {}, cover: {} });
     });
 
+    /* 手机端顶栏的「设置」快捷入口 */
+    const mobileSet = document.getElementById('btnMobileSettings');
+    if (mobileSet) mobileSet.addEventListener('click', () => switchView('settings'));
+
     $('#bridgePill').addEventListener('click', () => {
       if (bridge) toast('桥接扩展已连接，笔记中心点「发草稿箱」即可', 'ok');
       else guideDrawer();
@@ -3187,6 +3207,11 @@ grant select, insert, update, delete on agent_asset to anon;`;
       $('#llmTestResult').className = box.className;
     });
     $('#btnPresetFree').addEventListener('click', () => {
+      const isLocal = /^(localhost|127\.0\.0\.1|::1)$/.test(location.hostname) || location.protocol === 'file:';
+      if (!isLocal) {
+        toast('这个按钮只在本机版有效。网页版/手机请点「智谱免费 · 云端转发」', 'err');
+        return;
+      }
       $('#llmBase').value = '/api/llm';
       $('#llmModel').value = 'glm-4.5-flash';
       $('#llmVision').value = 'glm-4.6v-flash';
